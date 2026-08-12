@@ -1125,12 +1125,7 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
       </span>
     </div>
 
-    <div class="filters rv rv-d1" role="group" aria-label="Filter work">
-      <button class="filter" data-filter="all" aria-pressed="true">All work</button>
-      <button class="filter" data-filter="mobile" aria-pressed="false">Mobile</button>
-      <button class="filter" data-filter="ai" aria-pressed="false">AI &amp; Vision</button>
-      <button class="filter" data-filter="platform" aria-pressed="false">Platform</button>
-    </div>
+    <div class="filters rv rv-d1" id="filters" role="group" aria-label="Filter work"><!-- rendered from data.js --></div>
   </div>
 
   <div class="wrap rail-outer">
@@ -1363,6 +1358,40 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
     return String(s == null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  /* ---------- categories: defined in data.js, shared by pills + cards ----------
+     Older data files had no category list, so derive one from whatever the
+     projects actually use. */
+  var CATEGORIES = (function(){
+    if(DATA.categories && DATA.categories.length) return DATA.categories;
+    var nice = {mobile:'Mobile', ai:'AI & Vision', platform:'Platform', web:'Web'};
+    var seen = [], out = [];
+    (DATA.projects || []).forEach(function(p){
+      (p.categories || []).forEach(function(c){
+        if(seen.indexOf(c) < 0){
+          seen.push(c);
+          out.push({id:c, label: nice[c] || c.charAt(0).toUpperCase()+c.slice(1)});
+        }
+      });
+    });
+    return out;
+  })();
+
+  (function(){
+    var host = document.getElementById('filters');
+    if(!host) return;
+    /* a filter nobody can satisfy is just a dead end, so skip empty ones */
+    var used = CATEGORIES.filter(function(c){
+      return (DATA.projects || []).some(function(p){
+        return (p.categories || []).indexOf(c.id) > -1;
+      });
+    });
+    if(used.length < 2){ host.hidden = true; return; }   /* one bucket = no point filtering */
+    host.innerHTML = '<button class="filter" data-filter="all" aria-pressed="true">All work</button>'
+      + used.map(function(c){
+          return '<button class="filter" data-filter="'+esc(c.id)+'" aria-pressed="false">'+esc(c.label)+'</button>';
+        }).join('');
+  })();
 
   /* ---------- render: WORK rail ---------- */
   (function(){

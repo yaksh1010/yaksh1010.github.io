@@ -90,6 +90,11 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 .folderbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .folderbar .lbl{font-size:13px;color:var(--t2);flex:1;min-width:220px}
 .folderbar .lbl b{color:var(--text)}
+.catrow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--hair)}
+.catrow:last-child{border-bottom:0}
+.catrow input{flex:1;max-width:280px}
+.catrow .count{font-size:12px;color:var(--t3);flex:1}
+.catrow .id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--t3);background:rgba(0,0,0,.05);padding:2px 7px;border-radius:5px}
 
 /* export bar */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--hair)}
@@ -135,6 +140,15 @@ ol.steps b{color:var(--text)}
       </div>
       <button class="btn btn-blue" id="addProject">+ Add project</button>
     </div>
+    <div class="card" id="catCard">
+      <div class="card-head" style="margin-bottom:10px">
+        <h3 style="font-size:16px">Categories</h3>
+        <button class="btn btn-out btn-sm" id="addCat">+ Add category</button>
+      </div>
+      <p class="hint" style="margin:-4px 0 12px">These become the filter pills on your site. Rename one and it updates everywhere. A category with no projects is hidden on the site automatically.</p>
+      <div id="catList"></div>
+    </div>
+
     <div class="folderbar">
       <span class="lbl" id="dirLabel">Images folder: <b>not linked</b></span>
       <button class="btn btn-out btn-sm" id="linkDir">Link images folder</button>
@@ -249,7 +263,14 @@ ol.steps b{color:var(--text)}
   "use strict";
 
   var DRAFT_KEY = 'portfolio-console-draft';
-  var CATS = [['mobile','Mobile'],['ai','AI & Vision'],['platform','Platform']];
+  /* categories now live in data.js so the site's filter pills and these
+     checkboxes can never disagree */
+  function cats(){ return data.categories || []; }
+  function catCount(id){
+    return (data.projects||[]).filter(function(p){
+      return (p.categories||[]).indexOf(id) > -1;
+    }).length;
+  }
   var GRADIENTS = [
     ['linear-gradient(165deg,#ff9a6b,#e0446f 55%,#7a2a86)','Sunset'],
     ['linear-gradient(165deg,#ffd43f,#f5a208 52%,#3a2b00)','Amber'],
@@ -264,7 +285,7 @@ ol.steps b{color:var(--text)}
   var dirty = false;
 
   function blank(){
-    return {projects:[], experience:[], certifications:[], analytics:{goatcounterCode:''}};
+    return {categories:[], projects:[], experience:[], certifications:[], analytics:{goatcounterCode:''}};
   }
   function fromFile(){
     return window.PORTFOLIO_DATA ? JSON.parse(JSON.stringify(window.PORTFOLIO_DATA)) : blank();
@@ -446,20 +467,24 @@ ol.steps b{color:var(--text)}
         + '</div>';
 
       /* categories */
-      var cats = c.querySelector('[data-cats]');
-      CATS.forEach(function(pair){
-        var on = (p.categories||[]).indexOf(pair[0])>-1;
+      var catsHost = c.querySelector('[data-cats]');
+      if(!cats().length){
+        catsHost.innerHTML = '<span class="hint">No categories defined yet - add one above.</span>';
+      }
+      cats().forEach(function(cat){
+        var on = (p.categories||[]).indexOf(cat.id)>-1;
         var lab = el('label','chk'+(on?' on':''),
-          '<input type="checkbox" '+(on?'checked':'')+'>'+pair[1]);
+          '<input type="checkbox" '+(on?'checked':'')+'>'+esc(cat.label));
         lab.querySelector('input').addEventListener('change', function(){
           p.categories = p.categories||[];
-          var k = p.categories.indexOf(pair[0]);
-          if(this.checked && k<0) p.categories.push(pair[0]);
+          var k = p.categories.indexOf(cat.id);
+          if(this.checked && k<0) p.categories.push(cat.id);
           if(!this.checked && k>-1) p.categories.splice(k,1);
           lab.classList.toggle('on', this.checked);
           save();
+          renderCategories();          /* keep the counts honest */
         });
-        cats.appendChild(lab);
+        catsHost.appendChild(lab);
       });
 
       /* gradient */
@@ -580,10 +605,74 @@ ol.steps b{color:var(--text)}
     host.appendChild(file);
   }
 
+  function renderCategories(){
+    var host = document.getElementById('catList');
+    host.innerHTML = '';
+    if(!cats().length){
+      host.appendChild(el('div','empty','No categories yet.'));
+      return;
+    }
+    cats().forEach(function(cat,i){
+      var row = el('div','catrow');
+      var used = catCount(cat.id);
+      row.innerHTML = '<input type="text" value="'+esc(cat.label)+'" aria-label="Category name">'
+        + '<span class="id">'+esc(cat.id)+'</span>'
+        + '<span class="count">'+used+' project'+(used===1?'':'s')+'</span>'
+        + '<button class="btn btn-ghost btn-sm" data-a="up" '+(i===0?'disabled':'')+'>&uarr;</button>'
+        + '<button class="btn btn-ghost btn-sm" data-a="down" '+(i===cats().length-1?'disabled':'')+'>&darr;</button>'
+        + '<button class="btn btn-danger btn-sm" data-a="del">Delete</button>';
+
+      /* rename: label only, id stays so project links never break */
+      row.querySelector('input').addEventListener('input', function(){
+        cat.label = this.value;
+        save();
+      });
+
+      row.querySelector('[data-a="del"]').addEventListener('click', function(){
+        var msg = used
+          ? 'Delete "'+cat.label+'"? It will be removed from '+used+' project'+(used===1?'':'s')+'.'
+          : 'Delete "'+cat.label+'"?';
+        if(!confirm(msg)) return;
+        (data.projects||[]).forEach(function(p){
+          var k = (p.categories||[]).indexOf(cat.id);
+          if(k > -1) p.categories.splice(k,1);
+        });
+        data.categories.splice(i,1);
+        save(); renderCategories(); renderProjects();
+      });
+      row.querySelector('[data-a="up"]').addEventListener('click', function(){
+        if(i===0) return;
+        data.categories.splice(i-1,0,data.categories.splice(i,1)[0]);
+        save(); renderCategories();
+      });
+      row.querySelector('[data-a="down"]').addEventListener('click', function(){
+        if(i===cats().length-1) return;
+        data.categories.splice(i+1,0,data.categories.splice(i,1)[0]);
+        save(); renderCategories();
+      });
+
+      host.appendChild(row);
+    });
+  }
+
+  document.getElementById('addCat').addEventListener('click', function(){
+    var label = prompt('Category name (e.g. "Web" or "Machine Learning")');
+    if(!label) return;
+    label = label.trim();
+    if(!label) return;
+    var id = slug(label);
+    if(cats().some(function(c){ return c.id === id; })){
+      alert('A category with that name already exists.');
+      return;
+    }
+    data.categories.push({id:id, label:label});
+    save(); renderCategories(); renderProjects();
+  });
+
   document.getElementById('addProject').addEventListener('click', function(){
     data.projects.push({
       id:'', name:'New project', tagline:'', stack:'',
-      categories:['mobile'], gradient:GRADIENTS[0][0],
+      categories: cats().length ? [cats()[0].id] : [], gradient:GRADIENTS[0][0],
       links:{appStore:'',playStore:'',github:''}, screenshots:[]
     });
     save(); renderProjects();
@@ -746,6 +835,7 @@ ol.steps b{color:var(--text)}
       + '   =========================================================================== */\n'
       + 'window.PORTFOLIO_DATA = '
       + JSON.stringify({
+          categories: data.categories,
           projects: data.projects,
           experience: data.experience,
           certifications: data.certifications,
@@ -788,9 +878,25 @@ ol.steps b{color:var(--text)}
   /* ---------------- boot ---------------- */
   function boot(){
     data.projects = data.projects||[];
+    /* migrate older data.js files that had no category list */
+    if(!data.categories || !data.categories.length){
+      var seen = [];
+      data.categories = [];
+      (data.projects||[]).forEach(function(p){
+        (p.categories||[]).forEach(function(c){
+          if(seen.indexOf(c) < 0){
+            seen.push(c);
+            data.categories.push({id:c, label:c.charAt(0).toUpperCase()+c.slice(1)});
+          }
+        });
+      });
+      var nice = {ai:'AI & Vision', platform:'Platform', mobile:'Mobile'};
+      data.categories.forEach(function(c){ if(nice[c.id]) c.label = nice[c.id]; });
+    }
     data.experience = data.experience||[];
     data.certifications = data.certifications||[];
     data.analytics = data.analytics||{goatcounterCode:''};
+    renderCategories();
     renderProjects();
     renderRoles();
     certsBox.value = data.certifications.join('\n');
