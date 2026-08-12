@@ -84,6 +84,12 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 .shot .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:3px 4px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dropzone{width:74px;height:150px;border:1.5px dashed #c7c7cc;border-radius:10px;display:grid;place-items:center;color:var(--t3);font-size:11px;text-align:center;cursor:pointer;padding:8px;transition:border-color .2s,background .2s}
 .dropzone:hover{border-color:var(--blue);background:rgba(0,113,227,.04)}
+.shot .badge{position:absolute;top:4px;left:4px;font-size:9px;font-weight:700;border-radius:5px;padding:2px 5px;line-height:1.2}
+.shot .badge.ok{background:rgba(48,209,88,.92);color:#06340f}
+.shot .badge.pending{background:rgba(255,159,10,.95);color:#3d2500}
+.folderbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--card);border-radius:var(--r);padding:14px 18px;margin-bottom:16px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.folderbar .lbl{font-size:13px;color:var(--t2);flex:1;min-width:220px}
+.folderbar .lbl b{color:var(--text)}
 
 /* export bar */
 .dock{position:fixed;left:0;right:0;bottom:0;z-index:60;background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(20px);border-top:1px solid var(--hair)}
@@ -128,6 +134,11 @@ ol.steps b{color:var(--text)}
         <p>These render into the horizontal rail on your site. Leave a store link empty and that button simply won't appear.</p>
       </div>
       <button class="btn btn-blue" id="addProject">+ Add project</button>
+    </div>
+    <div class="folderbar">
+      <span class="lbl" id="dirLabel">Images folder: <b>not linked</b></span>
+      <button class="btn btn-out btn-sm" id="linkDir">Link images folder</button>
+      <button class="btn btn-ghost btn-sm" id="unlinkDir" hidden>Unlink</button>
     </div>
     <div id="projectList"></div>
   </section>
@@ -289,6 +300,101 @@ ol.steps b{color:var(--text)}
     return String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'project';
   }
 
+  /* -------------- images folder (File System Access API) --------------
+     Chrome lets a page hold a writable handle to one folder the user picks.
+     We keep that handle in IndexedDB so it survives reloads, then write
+     renamed screenshots straight into it. Falls back to a download with the
+     correct filename on browsers without the API. */
+  var dirHandle = null;
+  var previewURL = {};   // "images/foo.png" -> blob: url for instant preview
+  var writtenNow = {};   // "images/foo.png" -> true once actually saved to disk
+
+  function idb(){
+    return new Promise(function(res,rej){
+      var r = indexedDB.open('portfolio-console',1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore('kv'); };
+      r.onsuccess = function(){ res(r.result); };
+      r.onerror   = function(){ rej(r.error); };
+    });
+  }
+  function idbSet(k,v){
+    return idb().then(function(db){ return new Promise(function(res,rej){
+      var t=db.transaction('kv','readwrite'); t.objectStore('kv').put(v,k);
+      t.oncomplete=function(){res();}; t.onerror=function(){rej(t.error);};
+    });});
+  }
+  function idbGet(k){
+    return idb().then(function(db){ return new Promise(function(res,rej){
+      var t=db.transaction('kv','readonly'), q=t.objectStore('kv').get(k);
+      q.onsuccess=function(){res(q.result);}; q.onerror=function(){rej(q.error);};
+    });});
+  }
+  function idbDel(k){
+    return idb().then(function(db){ return new Promise(function(res){
+      var t=db.transaction('kv','readwrite'); t.objectStore('kv').delete(k);
+      t.oncomplete=function(){res();};
+    });});
+  }
+
+  function supportsFS(){ return typeof window.showDirectoryPicker === 'function'; }
+
+  function setDirLabel(){
+    var lab = document.getElementById('dirLabel'),
+        btn = document.getElementById('linkDir'),
+        un  = document.getElementById('unlinkDir');
+    if(!supportsFS()){
+      lab.innerHTML = 'Images folder: <b>not supported in this browser</b> &mdash; screenshots will download instead, already correctly named.';
+      btn.hidden = true; un.hidden = true; return;
+    }
+    if(dirHandle){
+      lab.innerHTML = 'Images folder: <b>' + esc(dirHandle.name) + '</b> &mdash; screenshots save straight in, renamed.';
+      btn.textContent = 'Change folder'; un.hidden = false;
+    } else {
+      lab.innerHTML = 'Images folder: <b>not linked</b> &mdash; link <span class="mono">GitHub/Portfolio/images</span> once and screenshots save themselves.';
+      btn.textContent = 'Link images folder'; un.hidden = true;
+    }
+  }
+
+  function linkDir(){
+    if(!supportsFS()){ alert('This browser has no folder access API. Use Chrome, or the files will just download.'); return; }
+    window.showDirectoryPicker({mode:'readwrite', id:'portfolio-images'})
+      .then(function(hnd){ dirHandle = hnd; return idbSet('imagesDir', hnd); })
+      .then(function(){ setDirLabel(); setStatus('Images folder linked'); })
+      .catch(function(){ /* user cancelled */ });
+  }
+
+  function permitted(){
+    if(!dirHandle) return Promise.resolve(false);
+    return dirHandle.queryPermission({mode:'readwrite'}).then(function(s){
+      if(s === 'granted') return true;
+      return dirHandle.requestPermission({mode:'readwrite'}).then(function(s2){ return s2 === 'granted'; });
+    }).catch(function(){ return false; });
+  }
+
+  function writeToDir(fileObj, filename){
+    return permitted().then(function(ok){
+      if(!ok) return false;
+      return dirHandle.getFileHandle(filename, {create:true})
+        .then(function(fh){ return fh.createWritable(); })
+        .then(function(w){ return Promise.resolve(w.write(fileObj)).then(function(){ return w.close(); }); })
+        .then(function(){ return true; })
+        .catch(function(){ return false; });
+    });
+  }
+
+  function downloadAs(fileObj, filename){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(fileObj);
+    a.download = filename;
+    a.click();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 4000);
+  }
+
+  document.getElementById('linkDir').addEventListener('click', linkDir);
+  document.getElementById('unlinkDir').addEventListener('click', function(){
+    dirHandle = null; idbDel('imagesDir').then(setDirLabel);
+  });
+
   /* ---------------- tabs ---------------- */
   document.querySelectorAll('.tab').forEach(function(t){
     t.addEventListener('click', function(){
@@ -399,33 +505,77 @@ ol.steps b{color:var(--text)}
   function renderShots(host, p){
     host.innerHTML='';
     p.screenshots = p.screenshots || [];
+
     p.screenshots.forEach(function(src,i){
       var d = el('div','shot');
-      d.innerHTML = '<img src="'+esc(src)+'" alt="" onerror="this.style.opacity=.25">'
-                  + '<button class="x" title="Remove">×</button>'
-                  + '<span class="nm">'+esc(src.split("/").pop())+'</span>';
+      var shown = previewURL[src] || src;      /* blob preview wins until reload */
+      var saved = !!writtenNow[src];
+      var badge = dirHandle
+        ? (saved ? '<span class="badge ok">SAVED</span>' : '')
+        : (previewURL[src] ? '<span class="badge pending">CHECK FILE</span>' : '');
+
+      d.innerHTML = '<img src="'+esc(shown)+'" alt="">'
+                  + badge
+                  + '<button class="x" title="Remove">&times;</button>'
+                  + '<span class="nm">'+esc(src.split('/').pop())+'</span>';
+
+      /* if neither a live preview nor a file on disk resolves, say so */
+      d.querySelector('img').addEventListener('error', function(){
+        this.style.opacity = .18;
+        if(!d.querySelector('.badge')){
+          var b = el('span','badge pending','MISSING');
+          d.appendChild(b);
+        }
+      });
+
       d.querySelector('.x').addEventListener('click', function(){
         p.screenshots.splice(i,1); save(); renderShots(host,p);
       });
       host.appendChild(d);
     });
 
-    var dz = el('div','dropzone','+ Add<br>screenshot');
-    var file = el('input'); file.type='file'; file.accept='image/*'; file.multiple=true; file.style.display='none';
+    var dz   = el('div','dropzone','+ Add<br>screenshot');
+    var file = el('input');
+    file.type='file'; file.accept='image/*'; file.multiple=true; file.style.display='none';
     dz.addEventListener('click', function(){ file.click(); });
+
     file.addEventListener('change', function(){
-      Array.prototype.forEach.call(file.files, function(f){
-        var n = p.screenshots.length + 1;
-        var ext = (f.name.split('.').pop()||'png').toLowerCase();
-        var name = 'images/' + slug(p.name) + '-' + n + '.' + ext;
-        p.screenshots.push(name);
-      });
-      save();
-      renderShots(host,p);
-      alert('Added '+file.files.length+' screenshot(s).\n\nNow save the actual image file(s) into your images/ folder using exactly these names:\n\n'
-            + p.screenshots.slice(-file.files.length).join('\n'));
-      file.value='';
+      var files = Array.prototype.slice.call(file.files);
+      if(!files.length) return;
+      var savedNames = [], fellBack = [];
+
+      /* sequential so numbering can't race */
+      (function step(i){
+        if(i >= files.length){ done(); return; }
+        var f    = files[i];
+        var ext  = (f.name.split('.').pop() || 'png').toLowerCase();
+        var name = slug(p.name) + '-' + (p.screenshots.length + 1) + '.' + ext;
+        var rel  = 'images/' + name;
+
+        p.screenshots.push(rel);
+        previewURL[rel] = URL.createObjectURL(f);   /* instant preview, always */
+
+        writeToDir(f, name).then(function(ok){
+          if(ok){ writtenNow[rel] = true; savedNames.push(name); }
+          else  { downloadAs(f, name); fellBack.push(name); }
+          step(i+1);
+        });
+      })(0);
+
+      function done(){
+        save();
+        renderShots(host, p);
+        file.value = '';
+        if(fellBack.length && !savedNames.length){
+          setStatus(supportsFS()
+            ? 'Downloaded ' + fellBack.length + ' image(s) - link your images folder to skip this step'
+            : 'Downloaded ' + fellBack.length + ' image(s) - move them into images/', true);
+        } else if(savedNames.length){
+          setStatus('Saved ' + savedNames.length + ' image(s) into ' + dirHandle.name + '/');
+        }
+      }
     });
+
     host.appendChild(dz);
     host.appendChild(file);
   }
@@ -648,6 +798,12 @@ ol.steps b{color:var(--text)}
     syncDash();
   }
   boot();
+  setDirLabel();
+  if(supportsFS()){
+    idbGet('imagesDir').then(function(hnd){
+      if(hnd){ dirHandle = hnd; setDirLabel(); }
+    }).catch(function(){});
+  }
   setStatus(window.PORTFOLIO_DATA ? 'Loaded' : 'data.js not found — starting empty', !window.PORTFOLIO_DATA);
 })();
 </script>
