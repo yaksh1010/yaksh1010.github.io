@@ -1,0 +1,8 @@
+# test tooling — not part of the site
+node_modules/
+package.json
+package-lock.json
+
+# os noise
+.DS_Store
+Thumbs.db
