@@ -173,10 +173,12 @@ ol.steps b{color:var(--text)}
       </div>
     </div>
 
+    <p class="hint" id="statHint" style="margin:-6px 0 14px">GoatCounter caches these counts for up to <b>4 hours</b>, so a visit you just made will not appear here immediately. The full dashboard updates in real time.</p>
+
     <div class="stats" id="stats">
       <div class="stat"><b id="sTotal">—</b><span>TOTAL PAGEVIEWS</span></div>
-      <div class="stat"><b id="sWeek">—</b><span>LAST 7 DAYS</span></div>
-      <div class="stat"><b id="sMonth">—</b><span>LAST 30 DAYS</span></div>
+      <div class="stat"><b id="sWeek">—</b><span>PAST WEEK</span></div>
+      <div class="stat"><b id="sMonth">—</b><span>PAST MONTH</span></div>
     </div>
 
     <div class="note" id="gcSetup">
@@ -540,8 +542,22 @@ ol.steps b{color:var(--text)}
   function loadStats(){
     var code = (data.analytics||{}).goatcounterCode;
     var set = function(id,v){ document.getElementById(id).textContent = v; };
-    if(!code){ set('sTotal','—'); set('sWeek','—'); set('sMonth','—'); return; }
-    set('sTotal','…'); set('sWeek','…'); set('sMonth','…');
+    var hint = document.getElementById('statHint');
+
+    /* Opened straight off the disk: the page origin is "null", so the browser
+       blocks the cross-origin request to GoatCounter before it is even sent. */
+    if(location.protocol === 'file:'){
+      set('sTotal','--'); set('sWeek','--'); set('sMonth','--');
+      hint.innerHTML = '<b>You are running this console from a local file.</b> '
+        + 'Chrome treats that as origin "null" and blocks the request to GoatCounter, '
+        + 'so no numbers can load here. Your site is still being tracked normally &mdash; '
+        + 'open <a href="https://yaksh1010.github.io/admin/">yaksh1010.github.io/admin/</a> '
+        + 'or the <a href="https://yaksh1010.goatcounter.com" target="_blank" rel="noopener">GoatCounter dashboard</a> to see them.';
+      return;
+    }
+    var fails = 0;
+    if(!code){ set('sTotal','--'); set('sWeek','--'); set('sMonth','--'); return; }
+    set('sTotal','...'); set('sWeek','...'); set('sMonth','...');
 
     /* GoatCounter's public counter endpoint — needs "allow adding visitor
        counts" enabled in site settings. No API token, so this stays safe
@@ -549,13 +565,26 @@ ol.steps b{color:var(--text)}
     var base = 'https://'+code+'.goatcounter.com/counter/';
     function grab(q, id){
       fetch(base+'TOTAL.json'+q)
-        .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
-        .then(function(j){ set(id, j.count_unique || j.count || '0'); })
-        .catch(function(){ set(id,'—'); });
+        .then(function(r){
+          if(r.status === 403) throw new Error('not-enabled');
+          if(!r.ok) throw new Error(r.status);
+          return r.json();
+        })
+        .then(function(j){ set(id, j.count || j.count_unique || '0'); fails = 0; })
+        .catch(function(err){
+          set(id,'--');
+          fails++;
+          if(fails >= 3){
+            document.getElementById('statHint').innerHTML =
+              'Could not read your numbers. The usual cause: <b>Settings &rarr; Site settings &rarr; '
+              + '"Allow adding visitor counts to your website"</b> is still switched off in GoatCounter. '
+              + 'Turn it on, then hit Refresh.';
+          }
+        });
     }
     grab('', 'sTotal');
-    grab('?start=7d',  'sWeek');
-    grab('?start=30d', 'sMonth');
+    grab('?start=week',  'sWeek');
+    grab('?start=month', 'sMonth');
   }
 
   /* ---------------- export ---------------- */
