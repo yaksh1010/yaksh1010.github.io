@@ -94,6 +94,13 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 .catrow:last-child{border-bottom:0}
 .catrow input{flex:1;max-width:280px}
 .catrow .count{font-size:12px;color:var(--t3);flex:1}
+.devbox{display:flex;gap:14px;align-items:flex-start}
+.devprev{width:104px;height:210px;border-radius:14px;overflow:hidden;background:#e8e8ed;border:1px solid var(--hair);flex:none;display:grid;place-items:center;color:var(--t3);font-size:11px;text-align:center;padding:10px}
+.devprev.android{border-radius:12px}
+.devprev img{width:100%;height:100%;object-fit:cover;display:block}
+.devfields{flex:1;min-width:0}
+.portprev{width:150px;height:188px;border-radius:14px;overflow:hidden;background:#e8e8ed;border:1px solid var(--hair);flex:none;display:grid;place-items:center;color:var(--t3);font-size:11px;text-align:center;padding:10px}
+.portprev img{width:100%;height:100%;object-fit:cover;object-position:50% 34%;display:block}
 .catrow .id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--t3);background:rgba(0,0,0,.05);padding:2px 7px;border-radius:5px}
 
 /* export bar */
@@ -121,7 +128,8 @@ ol.steps b{color:var(--text)}
   <div class="bar-in">
     <span class="brand"><img src="../admin-icon.png" alt="" onerror="this.style.display='none'">Portfolio Admin</span>
     <div class="tabs" role="tablist">
-      <button class="tab" role="tab" aria-selected="true"  data-panel="projects">Projects</button>
+      <button class="tab" role="tab" aria-selected="true"  data-panel="home">Home</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="projects">Projects</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="experience">Experience</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="analytics">Analytics</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="publish">Publish</button>
@@ -131,8 +139,30 @@ ol.steps b{color:var(--text)}
 
 <div class="wrap">
 
+  <!-- ============================ HOME ============================ -->
+  <section class="panel" id="p-home">
+    <div class="head">
+      <div>
+        <h2>Home page</h2>
+        <p>The two devices under your headline, and your portrait in the About section. Upload a real screenshot and it replaces the drawn mock-up.</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:4px">Hero devices</h3>
+      <p class="hint" style="margin-bottom:16px">One iPhone, one Android. Portrait screenshots work best - they are cropped to fill the screen.</p>
+      <div class="grid" id="heroGrid"></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:4px">Your portrait</h3>
+      <p class="hint" style="margin-bottom:16px">Shown in the About section. A 4:5 portrait crop, 1200x1500 or larger, looks best.</p>
+      <div id="portraitBox"></div>
+    </div>
+  </section>
+
   <!-- ============================ PROJECTS ============================ -->
-  <section class="panel" id="p-projects">
+  <section class="panel" id="p-projects" hidden>
     <div class="head">
       <div>
         <h2>Projects</h2>
@@ -285,7 +315,7 @@ ol.steps b{color:var(--text)}
   var dirty = false;
 
   function blank(){
-    return {categories:[], projects:[], experience:[], certifications:[], analytics:{goatcounterCode:''}};
+    return {site:{}, categories:[], projects:[], experience:[], certifications:[], analytics:{goatcounterCode:''}};
   }
   function fromFile(){
     return window.PORTFOLIO_DATA ? JSON.parse(JSON.stringify(window.PORTFOLIO_DATA)) : blank();
@@ -326,6 +356,16 @@ ol.steps b{color:var(--text)}
      We keep that handle in IndexedDB so it survives reloads, then write
      renamed screenshots straight into it. Falls back to a download with the
      correct filename on browsers without the API. */
+  /* This page sits one level down in /admin/, so every path stored in data.js
+     ("images/x.jpg", "me.jpg") has to be walked back up to the site root or the
+     browser looks for /admin/images/x.jpg and shows a broken image. */
+  var ROOT = '../';
+  function assetURL(pathStr){
+    if(!pathStr) return '';
+    if(/^(https?:|data:|blob:)/.test(pathStr)) return pathStr;
+    return ROOT + pathStr;
+  }
+
   var dirHandle = null;
   var previewURL = {};   // "images/foo.png" -> blob: url for instant preview
   var writtenNow = {};   // "images/foo.png" -> true once actually saved to disk
@@ -380,8 +420,33 @@ ol.steps b{color:var(--text)}
     if(!supportsFS()){ alert('This browser has no folder access API. Use Chrome, or the files will just download.'); return; }
     window.showDirectoryPicker({mode:'readwrite', id:'portfolio-images'})
       .then(function(hnd){ dirHandle = hnd; return idbSet('imagesDir', hnd); })
-      .then(function(){ setDirLabel(); setStatus('Images folder linked'); })
+      .then(function(){ setDirLabel(); setStatus('Images folder linked'); return hydratePreviews(); })
       .catch(function(){ /* user cancelled */ });
+  }
+
+  /* After a reload the blob URLs are gone. If the images folder is linked we can
+     read the real files back out of it, so thumbnails survive restarts. */
+  function hydratePreviews(){
+    if(!dirHandle) return Promise.resolve();
+    return permitted().then(function(ok){
+      if(!ok) return;
+      var jobs = [];
+      return (async function(){
+        for await (var entry of dirHandle.values()){
+          if(entry.kind !== 'file') continue;
+          jobs.push((function(ent){
+            return ent.getFile().then(function(f){
+              previewURL['images/' + ent.name] = URL.createObjectURL(f);
+              writtenNow['images/' + ent.name] = true;
+            }).catch(function(){});
+          })(entry));
+        }
+        return Promise.all(jobs);
+      })();
+    }).then(function(){
+      renderProjects();
+      renderSite();
+    }).catch(function(){});
   }
 
   function permitted(){
@@ -533,7 +598,7 @@ ol.steps b{color:var(--text)}
 
     p.screenshots.forEach(function(src,i){
       var d = el('div','shot');
-      var shown = previewURL[src] || src;      /* blob preview wins until reload */
+      var shown = previewURL[src] || assetURL(src);   /* blob if just picked, else the real file */
       var saved = !!writtenNow[src];
       var badge = dirHandle
         ? (saved ? '<span class="badge ok">SAVED</span>' : '')
@@ -603,6 +668,99 @@ ol.steps b{color:var(--text)}
 
     host.appendChild(dz);
     host.appendChild(file);
+  }
+
+  /* ---------------- home page: hero devices + portrait ----------------
+     Same save path as project screenshots: write into the linked images/
+     folder if we have one, otherwise download the correctly-named file. */
+  function site(){
+    data.site = data.site || {};
+    data.site.hero = data.site.hero || {};
+    data.site.hero.ios     = data.site.hero.ios     || {image:'', caption:'A home screen.'};
+    data.site.hero.android = data.site.hero.android || {image:'', caption:'A home screen I built.'};
+    if(!('portrait' in data.site)) data.site.portrait = 'me.jpg';
+    return data.site;
+  }
+
+  function pickImage(targetName, onDone){
+    var inp = document.createElement('input');
+    inp.type='file'; inp.accept='image/*';
+    inp.addEventListener('change', function(){
+      var f = inp.files && inp.files[0];
+      if(!f) return;
+      var ext  = (f.name.split('.').pop() || 'png').toLowerCase();
+      var name = targetName + '.' + ext;
+      var rel  = 'images/' + name;
+      previewURL[rel] = URL.createObjectURL(f);
+      writeToDir(f, name).then(function(ok){
+        if(ok){ writtenNow[rel] = true; setStatus('Saved ' + name + ' into ' + dirHandle.name + '/'); }
+        else  { downloadAs(f, name); setStatus('Downloaded ' + name + ' - move it into images/', true); }
+        onDone(rel);
+      });
+    });
+    inp.click();
+  }
+
+  function renderSite(){
+    var s = site();
+
+    /* --- hero devices --- */
+    var grid = document.getElementById('heroGrid');
+    if(grid){
+      grid.innerHTML = '';
+      [['ios','iPhone','hero-ios'],['android','Android','hero-android']].forEach(function(cfg){
+        var key = cfg[0], label = cfg[1], fileBase = cfg[2];
+        var dev = s.hero[key];
+        var wrap = el('div','devbox');
+        var shown = previewURL[dev.image] || (dev.image ? assetURL(dev.image) : '');
+
+        wrap.innerHTML =
+            '<div class="devprev'+(key==='android'?' android':'')+'">'
+          +   (shown ? '<img src="'+esc(shown)+'" alt="">' : 'No screenshot<br>yet')
+          + '</div>'
+          + '<div class="devfields">'
+          +   '<label>'+label+' caption</label>'
+          +   '<input type="text" data-cap value="'+esc(dev.caption||'')+'">'
+          +   '<p class="hint" style="margin-bottom:10px">'+(dev.image ? esc(dev.image) : 'Showing the drawn mock-up')+'</p>'
+          +   '<div class="row">'
+          +     '<button class="btn btn-out btn-sm" data-up>'+(dev.image?'Replace':'Upload')+' screenshot</button>'
+          +     (dev.image ? '<button class="btn btn-danger btn-sm" data-clear>Remove</button>' : '')
+          +   '</div>'
+          + '</div>';
+
+        wrap.querySelector('[data-cap]').addEventListener('input', function(){
+          dev.caption = this.value; save();
+        });
+        wrap.querySelector('[data-up]').addEventListener('click', function(){
+          pickImage(fileBase, function(rel){ dev.image = rel; save(); renderSite(); });
+        });
+        var clr = wrap.querySelector('[data-clear]');
+        if(clr) clr.addEventListener('click', function(){
+          dev.image = ''; save(); renderSite();
+        });
+
+        grid.appendChild(wrap);
+      });
+    }
+
+    /* --- portrait --- */
+    var box = document.getElementById('portraitBox');
+    if(box){
+      var shownP = previewURL[s.portrait] || (s.portrait ? assetURL(s.portrait) : '');
+      box.innerHTML = '<div class="devbox">'
+        + '<div class="portprev">' + (shownP ? '<img src="'+esc(shownP)+'" alt="">' : 'No portrait') + '</div>'
+        + '<div class="devfields">'
+        +   '<p class="hint" style="margin-top:0">Currently: <span class="mono">'+esc(s.portrait||'none')+'</span></p>'
+        +   '<div class="row"><button class="btn btn-out btn-sm" data-upp>Upload new portrait</button></div>'
+        + '</div></div>';
+      box.querySelector('[data-upp]').addEventListener('click', function(){
+        pickImage('portrait', function(rel){ s.portrait = rel; save(); renderSite(); });
+      });
+      box.querySelector('.portprev img') &&
+        box.querySelector('.portprev img').addEventListener('error', function(){
+          this.parentNode.innerHTML = 'Not found';
+        });
+    }
   }
 
   function renderCategories(){
@@ -835,6 +993,7 @@ ol.steps b{color:var(--text)}
       + '   =========================================================================== */\n'
       + 'window.PORTFOLIO_DATA = '
       + JSON.stringify({
+          site: site(),
           categories: data.categories,
           projects: data.projects,
           experience: data.experience,
@@ -896,6 +1055,8 @@ ol.steps b{color:var(--text)}
     data.experience = data.experience||[];
     data.certifications = data.certifications||[];
     data.analytics = data.analytics||{goatcounterCode:''};
+    site();
+    renderSite();
     renderCategories();
     renderProjects();
     renderRoles();
@@ -907,7 +1068,7 @@ ol.steps b{color:var(--text)}
   setDirLabel();
   if(supportsFS()){
     idbGet('imagesDir').then(function(hnd){
-      if(hnd){ dirHandle = hnd; setDirLabel(); }
+      if(hnd){ dirHandle = hnd; setDirLabel(); return hydratePreviews(); }
     }).catch(function(){});
   }
   setStatus(window.PORTFOLIO_DATA ? 'Loaded' : 'data.js not found — starting empty', !window.PORTFOLIO_DATA);

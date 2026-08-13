@@ -329,6 +329,50 @@ a:hover{text-decoration:underline}
 .pagedots i{width:calc(var(--w)*.021);height:calc(var(--w)*.021);border-radius:50%;background:rgba(255,255,255,.4)}
 .pagedots i.on{background:#fff}
 
+/* ---------- Android handset frame ---------- */
+.android{
+  --w:286px;
+  width:var(--w);
+  aspect-ratio:1080/2340;
+  border-radius:calc(var(--w) * .105);
+  padding:calc(var(--w) * .022);
+  background:linear-gradient(150deg,#4a505a 0%,#171a1f 22%,#2f353e 48%,#12151a 76%,#3b414a 100%);
+  box-shadow:
+    0 1px 1px rgba(0,0,0,.35),
+    0 34px 60px -22px rgba(0,0,0,.42),
+    0 8px 18px -8px rgba(0,0,0,.22);
+  position:relative;flex:none;
+}
+.android::after{
+  content:"";position:absolute;right:-2px;top:22%;width:2px;height:7%;
+  background:linear-gradient(#565d68,#2a2f37);border-radius:2px;
+}
+.android .screen{border-radius:calc(var(--w) * .088)}
+.punch{
+  position:absolute;top:calc(var(--w)*.042);left:50%;transform:translateX(-50%);
+  width:calc(var(--w)*.052);aspect-ratio:1;border-radius:50%;
+  background:#000;z-index:5;box-shadow:0 0 0 1.5px rgba(0,0,0,.55);
+}
+/* android home screen mock: round icons + a search pill */
+.apps--android .icon{border-radius:50%}
+.searchpill{
+  position:relative;z-index:3;margin:auto calc(var(--w)*.09) calc(var(--w)*.06);
+  height:calc(var(--w)*.115);border-radius:var(--r-pill);
+  background:rgba(255,255,255,.22);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  display:flex;align-items:center;padding-inline:calc(var(--w)*.055);
+  color:rgba(255,255,255,.85);font-size:calc(var(--w)*.045);letter-spacing:-.01em;
+}
+.wall--android{background:
+  radial-gradient(80% 55% at 15% 10%, #1fb6a8 0%, transparent 58%),
+  radial-gradient(85% 60% at 90% 25%, #2b6cf0 0%, transparent 60%),
+  radial-gradient(95% 70% at 45% 100%, #7a4bff 0%, transparent 62%),
+  linear-gradient(160deg,#0d1b2a,#05070d);}
+
+/* a real screenshot fills the device screen */
+.devshot{position:absolute;inset:0;z-index:2}
+.devshot img{width:100%;height:100%;object-fit:cover;display:block}
+
 /* icon palettes */
 .g-msg{background:linear-gradient(180deg,#5ff06b,#12c223)}
 .g-photo{background:linear-gradient(140deg,#fff 12%,#ffd23f 38%,#ff5f6d 62%,#8f5cff 88%)}
@@ -997,77 +1041,7 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
   </div>
 
   <!-- ---------- device stage ---------- -->
-  <div class="stage">
-    <!-- Phone 1: a clean iOS home screen -->
-    <div class="stage-item">
-      <div class="iphone" role="img" aria-label="iPhone 17 Pro showing an iOS home screen">
-        <div class="screen">
-          <div class="wall wall--ios"></div>
-          <div class="island" aria-hidden="true"></div>
-          <div class="status"><span>9:41</span>
-            <span class="status-r">
-              <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-              <span class="batt" aria-hidden="true"></span>
-            </span>
-          </div>
-          <div class="apps">
-            <div class="app"><div class="icon g-cam">◉</div><span>Camera</span></div>
-            <div class="app"><div class="icon g-photo"></div><span>Photos</span></div>
-            <div class="app"><div class="icon g-map">◈</div><span>Maps</span></div>
-            <div class="app"><div class="icon g-note">✎</div><span>Notes</span></div>
-            <div class="app"><div class="icon g-music">♪</div><span>Music</span></div>
-            <div class="app"><div class="icon g-app">A</div><span>App Store</span></div>
-            <div class="app"><div class="icon g-set">⚙</div><span>Settings</span></div>
-            <div class="app"><div class="icon g-mail">✉</div><span>Mail</span></div>
-          </div>
-          <div class="pagedots" aria-hidden="true"><i class="on"></i><i></i></div>
-          <div class="dockrow" aria-hidden="true">
-            <div class="icon g-phone">✆</div>
-            <div class="icon g-safari" style="color:#1d7bf0">✦</div>
-            <div class="icon g-msg">◗</div>
-            <div class="icon g-music">♪</div>
-          </div>
-        </div>
-      </div>
-      <p class="stage-cap">A home screen.</p>
-    </div>
-
-    <!-- Phone 2: SWAP POINT — replace .apps content with your real screenshot -->
-    <!-- To use a real image instead: delete .wall/.apps/.dockrow below and drop in
-         <img src="my-home-screen.png" alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"> -->
-    <div class="stage-item">
-      <div class="iphone" role="img" aria-label="iPhone 17 Pro home screen filled with apps built by Yakshraj">
-        <div class="screen">
-          <div class="wall wall--mine"></div>
-          <div class="island" aria-hidden="true"></div>
-          <div class="status"><span>9:41</span>
-            <span class="status-r">
-              <span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
-              <span class="batt" aria-hidden="true"></span>
-            </span>
-          </div>
-          <div class="apps">
-            <div class="app"><div class="icon g-dev">D</div><span>Devotee</span></div>
-            <div class="app"><div class="icon g-taxi">◍</div><span>Doo Deg</span></div>
-            <div class="app"><div class="icon g-ar">AR</div><span>AR Fit</span></div>
-            <div class="app"><div class="icon g-flutter">F</div><span>Flutter</span></div>
-            <div class="app"><div class="icon g-fire">▲</div><span>Firebase</span></div>
-            <div class="app"><div class="icon g-aws">☁</div><span>AWS</span></div>
-            <div class="app"><div class="icon g-py">Py</div><span>Python</span></div>
-            <div class="app"><div class="icon g-git">⌥</div><span>GitHub</span></div>
-          </div>
-          <div class="pagedots" aria-hidden="true"><i class="on"></i><i></i></div>
-          <div class="dockrow" aria-hidden="true">
-            <div class="icon g-dev">D</div>
-            <div class="icon g-taxi">◍</div>
-            <div class="icon g-ar">AR</div>
-            <div class="icon g-flutter">F</div>
-          </div>
-        </div>
-      </div>
-      <p class="stage-cap">A home screen I built.</p>
-    </div>
-  </div>
+  <div class="stage" id="stage"><!-- rendered from data.js --></div>
 </header>
 
 <!-- ============================ ABOUT ============================ -->
@@ -1358,6 +1332,66 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
     return String(s == null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  /* ---------- render: hero devices + portrait ---------- */
+  (function(){
+    var site = DATA.site || {};
+
+    /* portrait */
+    var portrait = document.querySelector('#portrait img');
+    if(portrait && site.portrait) portrait.src = site.portrait;
+
+    var stage = document.getElementById('stage');
+    if(!stage) return;
+    var hero = site.hero || {};
+    var ios = hero.ios || {}, android = hero.android || {};
+
+    function statusBar(){
+      return '<div class="status"><span>9:41</span><span class="status-r">'
+        + '<span class="bars" aria-hidden="true"><i></i><i></i><i></i><i></i></span>'
+        + '<span class="batt" aria-hidden="true"></span></span></div>';
+    }
+    function iosMock(){
+      var apps = [['g-dev','D','Devotee'],['g-taxi','&#9677;','Doo Deg'],['g-ar','AR','AR Fit'],
+                  ['g-flutter','F','Flutter'],['g-fire','&#9650;','Firebase'],['g-aws','&#9729;','AWS'],
+                  ['g-py','Py','Python'],['g-git','&#8997;','GitHub']];
+      return '<div class="wall wall--mine"></div><div class="island" aria-hidden="true"></div>'
+        + statusBar()
+        + '<div class="apps">' + apps.map(function(a){
+            return '<div class="app"><div class="icon '+a[0]+'">'+a[1]+'</div><span>'+a[2]+'</span></div>';
+          }).join('') + '</div>'
+        + '<div class="pagedots" aria-hidden="true"><i class="on"></i><i></i></div>'
+        + '<div class="dockrow" aria-hidden="true"><div class="icon g-dev">D</div>'
+        + '<div class="icon g-taxi">&#9677;</div><div class="icon g-ar">AR</div>'
+        + '<div class="icon g-flutter">F</div></div>';
+    }
+    function androidMock(){
+      var apps = [['g-taxi','&#9677;','Doo Deg'],['g-dev','D','Devotee'],['g-ar','AR','AR Fit'],
+                  ['g-flutter','F','Flutter'],['g-py','Py','StuTrack'],['g-fire','&#9650;','Scan2Send'],
+                  ['g-aws','&#9729;','GreenGains'],['g-git','&#8997;','GitHub']];
+      return '<div class="wall wall--android"></div><div class="punch" aria-hidden="true"></div>'
+        + statusBar()
+        + '<div class="apps apps--android">' + apps.map(function(a){
+            return '<div class="app"><div class="icon '+a[0]+'">'+a[1]+'</div><span>'+a[2]+'</span></div>';
+          }).join('') + '</div>'
+        + '<div class="searchpill" aria-hidden="true">Search</div>';
+    }
+    function device(kind, cfg){
+      var frame = kind === 'ios' ? 'iphone' : 'android';
+      var inner = cfg.image
+        ? '<div class="devshot"><img src="'+esc(cfg.image)+'" alt="'+esc(cfg.caption||'')+'" loading="lazy"></div>'
+          + (kind === 'ios' ? '<div class="island" aria-hidden="true"></div>' : '<div class="punch" aria-hidden="true"></div>')
+        : (kind === 'ios' ? iosMock() : androidMock());
+      return '<div class="stage-item">'
+        + '<div class="'+frame+'" role="img" aria-label="'+esc(cfg.caption||'')+'">'
+        +   '<div class="screen">' + inner + '</div>'
+        + '</div>'
+        + '<p class="stage-cap">'+esc(cfg.caption||'')+'</p>'
+        + '</div>';
+    }
+
+    stage.innerHTML = device('ios', ios) + device('android', android);
+  })();
 
   /* ---------- categories: defined in data.js, shared by pills + cards ----------
      Older data files had no category list, so derive one from whatever the
