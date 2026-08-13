@@ -231,26 +231,27 @@ a:hover{text-decoration:underline}
   --w:286px;
   width:var(--w);
   aspect-ratio:1290/2796;
-  border-radius:calc(var(--w) * .175);
-  padding:calc(var(--w) * .0355);
+  border-radius:calc(var(--w) * .165);
+  padding:calc(var(--w) * .030);
   background:
-    linear-gradient(145deg,#e6e3df 0%,#b9b3ac 18%,#7e7973 42%,#cfcac3 62%,#8e8983 84%,#dedad4 100%);
+    linear-gradient(158deg,#3a3d44 0%,#0a0b0d 16%,#1c1e23 46%,#08090b 78%,#33363c 100%);
   box-shadow:
-    0 1px 1px rgba(0,0,0,.35),
-    0 34px 60px -22px rgba(0,0,0,.42),
-    0 8px 18px -8px rgba(0,0,0,.22);
+    inset 0 0 0 1px rgba(255,255,255,.07),
+    0 1px 1px rgba(0,0,0,.5),
+    0 34px 60px -22px rgba(0,0,0,.45),
+    0 8px 18px -8px rgba(0,0,0,.25);
   position:relative;
   flex:none;
 }
 .iphone--sm{--w:172px}
 .iphone--xs{--w:158px}
-.iphone::after{ /* side buttons */
+.iphone::after{ /* side button */
   content:"";position:absolute;left:-2px;top:19%;width:2px;height:8%;
-  background:linear-gradient(#b7b1aa,#8d8881);border-radius:2px;
+  background:linear-gradient(#4a4d54,#212429);border-radius:2px;
 }
 .screen{
   position:relative;width:100%;height:100%;overflow:hidden;
-  border-radius:calc(var(--w) * .142);
+  border-radius:calc(var(--w) * .138);
   background:#000;
   display:flex;flex-direction:column;
 }
@@ -331,23 +332,28 @@ a:hover{text-decoration:underline}
 
 /* ---------- Android handset frame ---------- */
 .android{
+  /* deliberately the same width, ratio and padding as .iphone so the two
+     devices sit side by side at identical size - only the corner radius and
+     the camera cut-out say which is which */
   --w:286px;
   width:var(--w);
-  aspect-ratio:1080/2340;
-  border-radius:calc(var(--w) * .105);
-  padding:calc(var(--w) * .022);
-  background:linear-gradient(150deg,#4a505a 0%,#171a1f 22%,#2f353e 48%,#12151a 76%,#3b414a 100%);
+  aspect-ratio:1290/2796;
+  border-radius:calc(var(--w) * .125);
+  padding:calc(var(--w) * .030);
+  background:
+    linear-gradient(158deg,#3a3d44 0%,#0a0b0d 16%,#1c1e23 46%,#08090b 78%,#33363c 100%);
   box-shadow:
-    0 1px 1px rgba(0,0,0,.35),
-    0 34px 60px -22px rgba(0,0,0,.42),
-    0 8px 18px -8px rgba(0,0,0,.22);
+    inset 0 0 0 1px rgba(255,255,255,.07),
+    0 1px 1px rgba(0,0,0,.5),
+    0 34px 60px -22px rgba(0,0,0,.45),
+    0 8px 18px -8px rgba(0,0,0,.25);
   position:relative;flex:none;
 }
 .android::after{
   content:"";position:absolute;right:-2px;top:22%;width:2px;height:7%;
-  background:linear-gradient(#565d68,#2a2f37);border-radius:2px;
+  background:linear-gradient(#4a4d54,#212429);border-radius:2px;
 }
-.android .screen{border-radius:calc(var(--w) * .088)}
+.android .screen{border-radius:calc(var(--w) * .098)}
 .punch{
   position:absolute;top:calc(var(--w)*.042);left:50%;transform:translateX(-50%);
   width:calc(var(--w)*.052);aspect-ratio:1;border-radius:50%;
