@@ -150,7 +150,7 @@ ol.steps b{color:var(--text)}
 
     <div class="card">
       <h3 style="font-size:16px;margin-bottom:4px">Hero devices</h3>
-      <p class="hint" style="margin-bottom:16px">One iPhone, one Android. Portrait screenshots work best - they are cropped to fill the screen.</p>
+      <p class="hint" style="margin-bottom:16px">Two iPhones. Portrait screenshots work best - they are cropped to fill the screen.</p>
       <div class="grid" id="heroGrid"></div>
     </div>
 
@@ -708,14 +708,14 @@ ol.steps b{color:var(--text)}
     var grid = document.getElementById('heroGrid');
     if(grid){
       grid.innerHTML = '';
-      [['ios','iPhone','hero-ios'],['android','Android','hero-android']].forEach(function(cfg){
+      [['ios','iPhone','hero-ios'],['android','Apple pic 2','hero-android']].forEach(function(cfg){
         var key = cfg[0], label = cfg[1], fileBase = cfg[2];
         var dev = s.hero[key];
         var wrap = el('div','devbox');
         var shown = previewURL[dev.image] || (dev.image ? assetURL(dev.image) : '');
 
         wrap.innerHTML =
-            '<div class="devprev'+(key==='android'?' android':'')+'">'
+            '<div class="devprev">'
           +   (shown ? '<img src="'+esc(shown)+'" alt="">' : 'No screenshot<br>yet')
           + '</div>'
           + '<div class="devfields">'

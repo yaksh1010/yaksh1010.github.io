@@ -1371,25 +1371,28 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
         + '<div class="icon g-taxi">&#9677;</div><div class="icon g-ar">AR</div>'
         + '<div class="icon g-flutter">F</div></div>';
     }
-    function androidMock(){
+    /* second device is an iPhone as well - just a different page of apps */
+    function iosMock2(){
       var apps = [['g-taxi','&#9677;','Doo Deg'],['g-dev','D','Devotee'],['g-ar','AR','AR Fit'],
                   ['g-flutter','F','Flutter'],['g-py','Py','StuTrack'],['g-fire','&#9650;','Scan2Send'],
                   ['g-aws','&#9729;','GreenGains'],['g-git','&#8997;','GitHub']];
-      return '<div class="wall wall--android"></div><div class="punch" aria-hidden="true"></div>'
+      return '<div class="wall wall--mine"></div><div class="island" aria-hidden="true"></div>'
         + statusBar()
-        + '<div class="apps apps--android">' + apps.map(function(a){
+        + '<div class="apps">' + apps.map(function(a){
             return '<div class="app"><div class="icon '+a[0]+'">'+a[1]+'</div><span>'+a[2]+'</span></div>';
           }).join('') + '</div>'
-        + '<div class="searchpill" aria-hidden="true">Search</div>';
+        + '<div class="pagedots" aria-hidden="true"><i></i><i class="on"></i></div>'
+        + '<div class="dockrow" aria-hidden="true"><div class="icon g-taxi">&#9677;</div>'
+        + '<div class="icon g-py">Py</div><div class="icon g-fire">&#9650;</div>'
+        + '<div class="icon g-aws">&#9729;</div></div>';
     }
     function device(kind, cfg){
-      var frame = kind === 'ios' ? 'iphone' : 'android';
       var inner = cfg.image
         ? '<div class="devshot"><img src="'+esc(cfg.image)+'" alt="'+esc(cfg.caption||'')+'" loading="lazy"></div>'
-          + (kind === 'ios' ? '<div class="island" aria-hidden="true"></div>' : '<div class="punch" aria-hidden="true"></div>')
-        : (kind === 'ios' ? iosMock() : androidMock());
+          + '<div class="island" aria-hidden="true"></div>'
+        : (kind === 'ios' ? iosMock() : iosMock2());
       return '<div class="stage-item">'
-        + '<div class="'+frame+'" role="img" aria-label="'+esc(cfg.caption||'')+'">'
+        + '<div class="iphone" role="img" aria-label="'+esc(cfg.caption||'')+'">'
         +   '<div class="screen">' + inner + '</div>'
         + '</div>'
         + '<p class="stage-cap">'+esc(cfg.caption||'')+'</p>'
