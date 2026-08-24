@@ -157,6 +157,12 @@ ol.steps b{color:var(--text)}
     </div>
 
     <div class="card">
+      <h3 style="font-size:16px;margin-bottom:4px">Resume</h3>
+      <p class="hint" style="margin-bottom:16px">The PDF behind every Resume button on your site - nav, hero, contact and footer.</p>
+      <div id="resumeBox"></div>
+    </div>
+
+    <div class="card">
       <h3 style="font-size:16px;margin-bottom:4px">Your portrait</h3>
       <p class="hint" style="margin-bottom:16px">Shown in the About section. A 4:5 portrait crop, 1200x1500 or larger, looks best.</p>
       <div id="portraitBox"></div>
@@ -704,12 +710,13 @@ ol.steps b{color:var(--text)}
     data.site.hero.ios     = data.site.hero.ios     || {image:'', caption:'A home screen.'};
     data.site.hero.android = data.site.hero.android || {image:'', caption:'A home screen I built.'};
     if(!('portrait' in data.site)) data.site.portrait = 'me.jpg';
+    if(!('resume' in data.site))   data.site.resume   = 'Yakshraj-Dalwadi-Resume.pdf';
     return data.site;
   }
 
-  function pickImage(targetName, onDone){
+  function pickFile(targetName, onDone, accept){
     var inp = document.createElement('input');
-    inp.type='file'; inp.accept='image/*';
+    inp.type='file'; inp.accept = accept || 'image/*';
     inp.addEventListener('change', function(){
       var f = inp.files && inp.files[0];
       if(!f) return;
@@ -757,7 +764,7 @@ ol.steps b{color:var(--text)}
           dev.caption = this.value; save();
         });
         wrap.querySelector('[data-up]').addEventListener('click', function(){
-          pickImage(fileBase, function(rel){ dev.image = rel; save(); renderSite(); });
+          pickFile(fileBase, function(rel){ dev.image = rel; save(); renderSite(); });
         });
         var clr = wrap.querySelector('[data-clear]');
         if(clr) clr.addEventListener('click', function(){
@@ -765,6 +772,23 @@ ol.steps b{color:var(--text)}
         });
 
         grid.appendChild(wrap);
+      });
+    }
+
+    /* --- resume --- */
+    var rbox = document.getElementById('resumeBox');
+    if(rbox){
+      var saved = writtenNow[s.resume];
+      rbox.innerHTML = '<div class="devbox" style="align-items:center">'
+        + '<div class="portprev" style="width:96px;height:124px;font-size:26px;color:#c7c7cc">PDF</div>'
+        + '<div class="devfields">'
+        +   '<p class="hint" style="margin-top:0">Currently: <span class="mono">'+esc(s.resume||'none')+'</span>'
+        +     (saved ? ' <span style="color:#1a8f3c">(just saved)</span>' : '') + '</p>'
+        +   '<div class="row"><button class="btn btn-out btn-sm" data-upr>Upload new resume (PDF)</button></div>'
+        +   '<p class="hint">Saved into <span class="mono">images/</span> as <span class="mono">resume.pdf</span>. The old file stays in the repo until you delete it.</p>'
+        + '</div></div>';
+      rbox.querySelector('[data-upr]').addEventListener('click', function(){
+        pickFile('resume', function(rel){ s.resume = rel; save(); renderSite(); }, 'application/pdf');
       });
     }
 
@@ -779,7 +803,7 @@ ol.steps b{color:var(--text)}
         +   '<div class="row"><button class="btn btn-out btn-sm" data-upp>Upload new portrait</button></div>'
         + '</div></div>';
       box.querySelector('[data-upp]').addEventListener('click', function(){
-        pickImage('portrait', function(rel){ s.portrait = rel; save(); renderSite(); });
+        pickFile('portrait', function(rel){ s.portrait = rel; save(); renderSite(); });
       });
       box.querySelector('.portprev img') &&
         box.querySelector('.portprev img').addEventListener('error', function(){
