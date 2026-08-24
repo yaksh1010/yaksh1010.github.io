@@ -79,6 +79,8 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 /* screenshots */
 .shots{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .shot{position:relative;width:74px;height:150px;border-radius:10px;overflow:hidden;background:#e8e8ed;border:1px solid var(--hair)}
+.shot.wide{width:190px;height:119px}
+.dropzone.wide{width:190px;height:119px}
 .shot img{width:100%;height:100%;object-fit:cover;display:block}
 .shot .x{position:absolute;top:4px;right:4px;width:18px;height:18px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;font-size:11px;line-height:1;cursor:pointer;display:grid;place-items:center}
 .shot .nm{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;padding:3px 4px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -526,9 +528,19 @@ ol.steps b{color:var(--text)}
         +   '<div><label>Category</label><div class="chips" data-cats></div></div>'
         +   '<div><label>Screen colour</label><select data-f="gradient"></select></div>'
         + '</div>'
+        + '<div class="grid">'
+        +   '<div><label>Shown on</label>'
+        +     '<select data-f="device">'
+        +       '<option value="phone">Phone - iPhone frame, portrait shots</option>'
+        +       '<option value="desktop">Desktop - laptop frame, landscape shots</option>'
+        +     '</select>'
+        +     '<p class="hint">Pick desktop for web apps and dashboards.</p>'
+        +   '</div>'
+        +   '<div></div>'
+        + '</div>'
         + '<div><label style="margin-top:16px">Screenshots</label>'
         +   '<div class="shots" data-shots></div>'
-        +   '<p class="hint">Save each file into <span class="mono">images/</span> with the filename shown. Portrait phone screenshots look best.</p>'
+        +   '<p class="hint" data-shothint></p>'
         + '</div>';
 
       /* categories */
@@ -552,6 +564,15 @@ ol.steps b{color:var(--text)}
         catsHost.appendChild(lab);
       });
 
+      /* device type */
+      var dsel = c.querySelector('[data-f="device"]');
+      dsel.value = (p.device === 'desktop') ? 'desktop' : 'phone';
+      dsel.addEventListener('change', function(){
+        p.device = dsel.value;
+        save();
+        renderShots(c.querySelector('[data-shots]'), p);
+      });
+
       /* gradient */
       var sel = c.querySelector('[data-f="gradient"]');
       GRADIENTS.forEach(function(g){
@@ -561,6 +582,9 @@ ol.steps b{color:var(--text)}
       });
 
       /* screenshots */
+      c.querySelector('[data-shothint]').textContent = (p.device === 'desktop')
+        ? 'Landscape screenshots, 16:10 or 16:9, fill the laptop screen best.'
+        : 'Portrait phone screenshots look best - they are cropped to fill the screen.';
       renderShots(c.querySelector('[data-shots]'), p);
 
       /* field binding */
@@ -596,8 +620,9 @@ ol.steps b{color:var(--text)}
     host.innerHTML='';
     p.screenshots = p.screenshots || [];
 
+    var wide = (p.device === 'desktop') ? ' wide' : '';
     p.screenshots.forEach(function(src,i){
-      var d = el('div','shot');
+      var d = el('div','shot'+wide);
       var shown = previewURL[src] || assetURL(src);   /* blob if just picked, else the real file */
       var saved = !!writtenNow[src];
       var badge = dirHandle
@@ -624,7 +649,7 @@ ol.steps b{color:var(--text)}
       host.appendChild(d);
     });
 
-    var dz   = el('div','dropzone','+ Add<br>screenshot');
+    var dz   = el('div','dropzone'+wide, '+ Add<br>screenshot');
     var file = el('input');
     file.type='file'; file.accept='image/*'; file.multiple=true; file.style.display='none';
     dz.addEventListener('click', function(){ file.click(); });
@@ -830,7 +855,7 @@ ol.steps b{color:var(--text)}
   document.getElementById('addProject').addEventListener('click', function(){
     data.projects.push({
       id:'', name:'New project', tagline:'', stack:'',
-      categories: cats().length ? [cats()[0].id] : [], gradient:GRADIENTS[0][0],
+      categories: cats().length ? [cats()[0].id] : [], gradient:GRADIENTS[0][0], device:'phone',
       links:{appStore:'',playStore:'',github:''}, screenshots:[]
     });
     save(); renderProjects();
@@ -1037,6 +1062,7 @@ ol.steps b{color:var(--text)}
   /* ---------------- boot ---------------- */
   function boot(){
     data.projects = data.projects||[];
+    data.projects.forEach(function(p){ if(!p.device) p.device = 'phone'; });
     /* migrate older data.js files that had no category list */
     if(!data.categories || !data.categories.length){
       var seen = [];

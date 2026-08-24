@@ -375,6 +375,63 @@ a:hover{text-decoration:underline}
   radial-gradient(95% 70% at 45% 100%, #7a4bff 0%, transparent 62%),
   linear-gradient(160deg,#0d1b2a,#05070d);}
 
+/* ---------- laptop frame, for desktop screenshots ---------- */
+.macbook{
+  --w:300px;
+  width:var(--w);
+  position:relative;flex:none;
+  display:flex;flex-direction:column;align-items:center;
+}
+.macbook .lid{
+  width:100%;aspect-ratio:16/10;
+  border-radius:calc(var(--w) * .030);
+  padding:calc(var(--w) * .013);
+  background:
+    linear-gradient(158deg,#3a3d44 0%,#0a0b0d 18%,#1c1e23 48%,#08090b 78%,#33363c 100%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.07),
+    0 1px 1px rgba(0,0,0,.5),
+    0 26px 46px -20px rgba(0,0,0,.45);
+}
+.macbook .lid .screen{border-radius:calc(var(--w) * .019)}
+/* camera dot in the top bezel */
+.macbook .lid::before{
+  content:"";position:absolute;top:calc(var(--w)*.0055);left:50%;
+  transform:translateX(-50%);
+  width:calc(var(--w)*.008);aspect-ratio:1;border-radius:50%;
+  background:#2a2d33;z-index:6;
+}
+.macbook .base{
+  width:114%;height:calc(var(--w) * .026);
+  border-radius:0 0 calc(var(--w) * .018) calc(var(--w) * .018);
+  background:linear-gradient(180deg,#2b2e34,#15171b 60%,#0c0d10);
+  box-shadow:0 10px 18px -10px rgba(0,0,0,.45);
+  position:relative;
+}
+.macbook .base::after{
+  content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);
+  width:16%;height:42%;border-radius:0 0 calc(var(--w)*.01) calc(var(--w)*.01);
+  background:rgba(255,255,255,.10);
+}
+.macbook--sm{--w:262px}
+
+/* desktop mock: a window with a sidebar */
+.deskui{position:relative;z-index:3;flex:1;display:flex;overflow:hidden}
+.deskui .side{width:26%;background:rgba(255,255,255,.12);padding:calc(var(--w)*.022);display:flex;flex-direction:column;gap:calc(var(--w)*.014)}
+.deskui .side i{display:block;height:calc(var(--w)*.016);border-radius:calc(var(--w)*.01);background:rgba(255,255,255,.5)}
+.deskui .side i:nth-child(2){width:70%}
+.deskui .side i:nth-child(4){width:55%}
+.deskui .main{flex:1;padding:calc(var(--w)*.022);display:flex;flex-direction:column;gap:calc(var(--w)*.016)}
+.deskui .main .row{display:flex;gap:calc(var(--w)*.016)}
+.deskui .main .row>span{flex:1;height:calc(var(--w)*.075);border-radius:calc(var(--w)*.012);background:rgba(255,255,255,.22)}
+.deskui .main .big{flex:1;border-radius:calc(var(--w)*.014);background:rgba(255,255,255,.16)}
+.dotsbar{
+  position:relative;z-index:4;display:flex;gap:calc(var(--w)*.012);
+  padding:calc(var(--w)*.018) calc(var(--w)*.022);
+  background:rgba(0,0,0,.25);
+}
+.dotsbar i{width:calc(var(--w)*.014);aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.45)}
+
 /* a real screenshot fills the device screen */
 .devshot{position:absolute;inset:0;z-index:2}
 .devshot img{width:100%;height:100%;object-fit:cover;display:block}
@@ -921,8 +978,9 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
 .nav-name:hover{letter-spacing:-.012em}
 
 /* work cards */
-.work-visual .iphone{transition:transform .65s var(--ease)}
-.work:hover .work-visual .iphone{transform:translateY(-6px) scale(1.035)}
+.work-visual .iphone,.work-visual .macbook{transition:transform .65s var(--ease)}
+.work:hover .work-visual .iphone,
+.work:hover .work-visual .macbook{transform:translateY(-6px) scale(1.035)}
 .work-title{transition:color .3s var(--ease)}
 .work:hover .work-title{color:var(--blue-link)}
 .work-swatches i{transition:transform .35s var(--ease),background .35s var(--ease)}
@@ -1449,14 +1507,22 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
     ];
 
     rail.innerHTML = (DATA.projects || []).map(function(p){
+      var isDesk = (p.device === 'desktop');
       var shots = (p.screenshots || []).filter(Boolean);
+      var DESK_MOCKS = [
+        '<div class="dotsbar"><i></i><i></i><i></i></div><div class="deskui"><div class="side"><i></i><i></i><i></i><i></i></div><div class="main"><div class="row"><span></span><span></span></div><div class="big"></div></div></div>',
+        '<div class="dotsbar"><i></i><i></i><i></i></div><div class="deskui"><div class="side"><i></i><i></i><i></i><i></i></div><div class="main"><div class="big"></div><div class="row"><span></span><span></span><span></span></div></div></div>',
+        '<div class="dotsbar"><i></i><i></i><i></i></div><div class="deskui"><div class="main"><div class="row"><span></span><span></span><span></span></div><div class="big"></div><div class="row"><span></span></div></div></div>'
+      ];
+      var mocks = isDesk ? DESK_MOCKS : MOCKS;
+
       var screens = shots.length
         ? shots.map(function(src,i){
             return '<div class="shot shot--img'+(i?'':' on')+'"><img src="'+esc(src)+'" alt="'+esc(p.name)+' screenshot '+(i+1)+'" loading="lazy"></div>';
           }).join('')
-        : MOCKS.map(function(m,i){ return '<div class="shot'+(i?'':' on')+'">'+m+'</div>'; }).join('');
+        : mocks.map(function(m,i){ return '<div class="shot'+(i?'':' on')+'">'+m+'</div>'; }).join('');
 
-      var n = shots.length || MOCKS.length;
+      var n = shots.length || mocks.length;
       var dots = '';
       for(var i=0;i<n;i++){
         dots += '<button class="wdot'+(i?'':' on')+'" type="button" aria-label="Screen '+(i+1)+'"></button>';
@@ -1468,12 +1534,17 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
       if(L.github)    cta += '<a class="btn btn-outline btn-sm" href="'+esc(L.github)+'" target="_blank" rel="noopener">View on GitHub</a>';
       if(!cta)        cta = '<span class="soon-mark">Links coming soon</span>';
 
+      var wall = '<div class="wall" style="background:'+esc(p.gradient||'linear-gradient(165deg,#8e9aae,#2b3242)')+'"></div>';
+      var visual = isDesk
+        ? '<div class="macbook macbook--sm"><div class="lid"><div class="screen">'
+          + wall + screens
+          + '</div></div><div class="base"></div></div>'
+        : '<div class="iphone iphone--sm"><div class="screen">'
+          + wall + '<div class="island" aria-hidden="true"></div>' + screens
+          + '</div></div>';
+
       return '<article class="work" data-cat="'+esc((p.categories||[]).join(' '))+'">'
-        +   '<div class="work-visual"><div class="iphone iphone--sm"><div class="screen">'
-        +     '<div class="wall" style="background:'+esc(p.gradient||'linear-gradient(165deg,#8e9aae,#2b3242)')+'"></div>'
-        +     '<div class="island" aria-hidden="true"></div>'
-        +     screens
-        +   '</div></div></div>'
+        +   '<div class="work-visual">' + visual + '</div>'
         +   '<div class="work-swatches" aria-label="Screens">'+dots+'</div>'
         +   '<div class="work-body">'
         +     '<h3 class="work-title">'+esc(p.name)+'</h3>'
