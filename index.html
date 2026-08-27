@@ -432,6 +432,34 @@ a:hover{text-decoration:underline}
 }
 .dotsbar i{width:calc(var(--w)*.014);aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.45)}
 
+/* no screenshot: fill the screen edge to edge with an NDA card.
+   inset:0 inside .screen means it inherits the frame's clip and radius,
+   so it lines up with the bezel exactly at every device size. */
+.nda{
+  position:absolute;inset:0;z-index:3;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:calc(var(--w) * .035);
+  padding:calc(var(--w) * .10);
+  text-align:center;color:#fff;
+}
+.nda b{
+  font-size:calc(var(--w) * .135);
+  font-weight:600;letter-spacing:.08em;line-height:1;
+  text-shadow:0 1px 3px rgba(0,0,0,.28);
+}
+.nda i{
+  display:block;width:calc(var(--w) * .17);height:1.5px;border-radius:2px;
+  background:rgba(255,255,255,.55);font-style:normal;
+}
+.nda span{
+  font-size:calc(var(--w) * .048);line-height:1.4;letter-spacing:-.01em;
+  color:rgba(255,255,255,.86);max-width:22ch;
+}
+/* wider screens can breathe a bit more */
+.macbook .nda b{font-size:calc(var(--w) * .075)}
+.macbook .nda i{width:calc(var(--w) * .09)}
+.macbook .nda span{font-size:calc(var(--w) * .028)}
+
 /* a real screenshot fills the device screen */
 .devshot{position:absolute;inset:0;z-index:2}
 .devshot img{width:100%;height:100%;object-fit:cover;display:block}
@@ -575,6 +603,9 @@ a:hover{text-decoration:underline}
 }
 .work:hover .work-visual{transform:translateY(-4px);box-shadow:0 14px 34px rgba(0,0,0,.09)}
 .work-swatches{display:flex;gap:8px;justify-content:center;margin:20px 0 14px}
+/* NDA cards have no dots - keep the row's height so every card's title
+   still sits on the same line across the rail */
+.work-swatches:empty{height:9px}
 .work-swatches i{width:9px;height:9px;border-radius:50%;background:#d2d2d7}
 .work-swatches i.on{background:#1d1d1f}
 .wdot{
@@ -1454,24 +1485,28 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
     rail.innerHTML = (DATA.projects || []).map(function(p){
       var isDesk = (p.device === 'desktop');
       var shots = (p.screenshots || []).filter(Boolean);
-      var DESK_MOCKS = [
+      var UNUSED_DESK_MOCKS = [
         '<div class="dotsbar"><i></i><i></i><i></i></div><div class="deskui"><div class="side"><i></i><i></i><i></i><i></i></div><div class="main"><div class="row"><span></span><span></span></div><div class="big"></div></div></div>',
         '<div class="dotsbar"><i></i><i></i><i></i></div><div class="deskui"><div class="side"><i></i><i></i><i></i><i></i></div><div class="main"><div class="big"></div><div class="row"><span></span><span></span><span></span></div></div></div>',
         '<div class="dotsbar"><i></i><i></i><i></i></div><div class="deskui"><div class="main"><div class="row"><span></span><span></span><span></span></div><div class="big"></div><div class="row"><span></span></div></div></div>'
       ];
-      var mocks = isDesk ? DESK_MOCKS : MOCKS;
-
       var screens = shots.length
         ? shots.map(function(src,i){
             return '<div class="shot shot--img'+(i?'':' on')+'"><img src="'+esc(src)+'" alt="'+esc(p.name)+' screenshot '+(i+1)+'" loading="lazy"></div>';
           }).join('')
-        : mocks.map(function(m,i){ return '<div class="shot'+(i?'':' on')+'">'+m+'</div>'; }).join('');
+        : '<div class="shot on"><div class="nda">'
+          + '<b>NDA</b><i></i><span>No photos or screenshots shared</span>'
+          + '</div></div>';
 
-      var n = shots.length || mocks.length;
+      /* one screen means nothing to page through, so no dots */
+      var n = shots.length;
       var dots = '';
       for(var i=0;i<n;i++){
         dots += '<button class="wdot'+(i?'':' on')+'" type="button" aria-label="Screen '+(i+1)+'"></button>';
       }
+      var swatches = (n > 1)
+        ? '<div class="work-swatches" aria-label="Screens">'+dots+'</div>'
+        : '<div class="work-swatches" aria-hidden="true"></div>';
 
       var L = p.links || {}, cta = '';
       if(L.appStore)  cta += '<a class="btn btn-blue btn-sm" href="'+esc(L.appStore)+'" target="_blank" rel="noopener">View on App Store</a>';
@@ -1490,7 +1525,7 @@ body.scrolled .nav{box-shadow:0 1px 12px rgba(0,0,0,.06)}
 
       return '<article class="work" data-cat="'+esc((p.categories||[]).join(' '))+'">'
         +   '<div class="work-visual">' + visual + '</div>'
-        +   '<div class="work-swatches" aria-label="Screens">'+dots+'</div>'
+        +   swatches
         +   '<div class="work-body">'
         +     '<h3 class="work-title">'+esc(p.name)+'</h3>'
         +     '<p class="work-tag">'+esc(p.tagline)+'</p>'
