@@ -95,10 +95,15 @@ h1{
 .btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(0,0,0,.30);border-color:rgba(0,0,0,.16)}
 .btn:active{transform:scale(.985)}
 .btn .ico{
-  width:34px;height:34px;border-radius:10px;flex:none;
-  display:grid;place-items:center;color:#fff;
+  width:36px;height:36px;border-radius:11px;flex:none;
+  display:grid;place-items:center;color:#fff;overflow:hidden;
   font-size:15px;font-weight:700;letter-spacing:-.02em;
 }
+.btn .ico svg{width:20px;height:20px;display:block}
+.btn .ico img{width:100%;height:100%;object-fit:cover;display:block}
+/* an uploaded logo sits on its own white tile rather than a brand colour */
+.btn .ico.custom{background:#fff;border:1px solid var(--hair)}
+.btn .ico.custom img{object-fit:contain;padding:4px}
 .btn .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .btn .arw{
   width:7px;height:7px;flex:none;opacity:.32;
@@ -194,10 +199,51 @@ h1{
     return String(s == null ? '' : s)
       .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
-  /* two initials, or the first letter - used inside the coloured tile */
-  function glyph(label){
-    var w = String(label||'').trim().split(/\s+/);
-    return (w[0]||'?').charAt(0).toUpperCase();
+  /* ------------------------------------------------------------------
+     Generic glyphs, drawn here rather than using the companies' actual
+     logos - those are trademarked marks I won't reproduce. Upload the
+     official asset per link in the admin if you want the real thing.
+     ------------------------------------------------------------------ */
+  var S = function(inner){
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" '
+         + 'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + inner + '</svg>';
+  };
+  var GLYPHS = {
+    phone:    S('<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/>'),
+    mail:     S('<rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="m3.5 7.5 8.5 6 8.5-6"/>'),
+    chat:     S('<path d="M21 11.5a8 8 0 0 1-11.6 7.1L4 20.5l1.9-5.3A8 8 0 1 1 21 11.5z"/>'),
+    code:     S('<path d="m8.5 8-4 4 4 4M15.5 8l4 4-4 4"/>'),
+    profile:  S('<rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="10" r="2"/><path d="M5.2 16.5c.6-1.5 1.9-2.3 3.3-2.3s2.7.8 3.3 2.3M14.5 9.5h4.2M14.5 13h4.2"/>'),
+    globe:    S('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18z"/>'),
+    doc:      S('<path d="M14 3v5h5"/><path d="M19 8v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h8l5 5z"/><path d="M9 13h6M9 17h4"/>'),
+    calendar: S('<rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4"/>'),
+    camera:   S('<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.4"/>'),
+    play:     S('<rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="m10.5 9.5 5 2.5-5 2.5z" fill="currentColor" stroke="none"/>'),
+    briefcase:S('<rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M3 12h18"/>'),
+    link:     S('<path d="M10 14a4.5 4.5 0 0 0 6.4 0l2.6-2.6a4.5 4.5 0 0 0-6.4-6.4L11.4 6.2"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0L5 12.6a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/>'),
+    at:       S('<circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 5 2.2A9 9 0 1 0 17.5 19"/>'),
+    star:     S('<path d="m12 3.5 2.6 5.4 5.9.8-4.3 4.1 1 5.9-5.2-2.8-5.2 2.8 1-5.9L3.5 9.7l5.9-.8z"/>'),
+    game:     S('<rect x="2.5" y="7" width="19" height="10" rx="4.5"/><path d="M7 10.5v3M5.5 12h3M15.5 11.5h.01M18 13.5h.01"/>')
+  };
+  /* sensible default per link id */
+  var DEFAULT_GLYPH = {
+    linkedin:'profile', github:'code', email:'mail', phone:'phone', call:'phone',
+    whatsapp:'chat', portfolio:'globe', resume:'doc', handshake:'briefcase',
+    calendly:'calendar', instagram:'camera', x:'at', twitter:'at',
+    youtube:'play', discord:'game', medium:'doc', dribbble:'star', behance:'star'
+  };
+
+  function iconFor(s){
+    var custom = s.icon && !/^glyph:/.test(s.icon) ? s.icon : '';
+    if(custom){
+      var src = /^(https?:|\.\.\/)/.test(custom) ? custom : '../' + custom;
+      return {cls:'custom', html:'<img src="'+esc(src)+'" alt="">'};
+    }
+    var name = (s.icon || '').replace(/^glyph:/,'')
+            || DEFAULT_GLYPH[s.id]
+            || DEFAULT_GLYPH[String(s.label||'').toLowerCase()]
+            || (s.kind === 'email' ? 'mail' : s.kind === 'phone' ? 'phone' : 'link');
+    return {cls:'i-'+esc(s.id), html: GLYPHS[name] || GLYPHS.link};
   }
   function href(s){
     if(s.kind === 'email') return 'mailto:' + s.value;
@@ -228,10 +274,11 @@ h1{
 
   /* ---------------- buttons ---------------- */
   function row(s, i, delay){
+    var ic = iconFor(s);
     var out = '<a class="btn rv" style="animation-delay:'+delay+'s" href="'+esc(href(s))+'"'
       + (external(s) ? ' target="_blank" rel="noopener"' : '')
       + '>'
-      + '<span class="ico i-'+esc(s.id)+' i-default-fallback">'+esc(glyph(s.label))+'</span>'
+      + '<span class="ico '+ic.cls+'">'+ic.html+'</span>'
       + '<span class="lbl">'+esc(s.label)+'</span>'
       + '<span class="arw" aria-hidden="true"></span>'
       + '</a>';
@@ -247,7 +294,7 @@ h1{
     var head = '';
     if(C.vcard !== false && (C.phone || C.email)){
       head = '<button class="btn btn--save rv" id="saveVcf" style="animation-delay:.08s" type="button">'
-           + '<span class="ico">&#43;</span>'
+           + '<span class="ico">' + S('<path d="M16 19h6M19 16v6"/><circle cx="10" cy="8" r="3.6"/><path d="M3.5 19.5c.8-3 3.4-4.6 6.5-4.6 1 0 2 .2 2.8.5"/>') + '</span>'
            + '<span class="lbl">Save to contacts</span>'
            + '<span class="arw" aria-hidden="true"></span>'
            + '</button>';

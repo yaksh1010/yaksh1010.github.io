@@ -103,10 +103,20 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 .devfields{flex:1;min-width:0}
 .portprev{width:150px;height:188px;border-radius:14px;overflow:hidden;background:#e8e8ed;border:1px solid var(--hair);flex:none;display:grid;place-items:center;color:var(--t3);font-size:11px;text-align:center;padding:10px}
 .portprev img{width:100%;height:100%;object-fit:cover;object-position:50% 34%;display:block}
-.linkrow{display:grid;grid-template-columns:120px 92px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--hair)}
+.linkrow{display:grid;grid-template-columns:46px 118px 88px 1fr auto;gap:8px;align-items:center;padding:9px 0;border-bottom:1px solid var(--hair)}
+.icocell{display:flex;flex-direction:column;align-items:center;gap:3px}
+.icobtn{
+  width:34px;height:34px;border-radius:10px;border:1px solid var(--hair);
+  background:#fff;display:grid;place-items:center;cursor:pointer;padding:0;overflow:hidden;
+  transition:border-color .2s var(--ease)
+}
+.icobtn:hover{border-color:var(--blue)}
+.icobtn img{width:100%;height:100%;object-fit:contain;padding:3px}
+.icobtn svg{width:18px;height:18px;stroke:var(--t2);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.icocell select{font-size:10px;padding:1px 3px;border-radius:6px;width:46px}
 .linkrow:last-child{border-bottom:0}
 .linkrow .top{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t2);white-space:nowrap}
-@media(max-width:760px){.linkrow{grid-template-columns:1fr 1fr;}.linkrow .acts{grid-column:1/-1;display:flex;justify-content:flex-end;gap:6px}}
+@media(max-width:760px){.linkrow{grid-template-columns:46px 1fr;}.linkrow .acts{grid-column:1/-1;display:flex;justify-content:flex-end;gap:6px}}
 .catrow .id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--t3);background:rgba(0,0,0,.05);padding:2px 7px;border-radius:5px}
 
 /* export bar */
@@ -258,7 +268,7 @@ ol.steps b{color:var(--text)}
         <h3 style="font-size:16px">Links</h3>
         <button class="btn btn-out btn-sm" id="addLink">+ Add link</button>
       </div>
-      <p class="hint" style="margin:-4px 0 12px">Tick <b>Top</b> to put a link in the main group; the rest fall under a "More" divider. Drag order is set with the arrows.</p>
+      <p class="hint" style="margin:-4px 0 12px">Tick <b>Top</b> to put a link in the main group; the rest fall under a "More" divider. <b>Icon:</b> leave the dropdown on <span class="mono">auto</span> for a sensible built-in glyph, pick a named one, or click the tile to upload an official logo (grab it from the company's brand-assets page).</p>
       <div id="linkList"></div>
     </div>
   </section>
@@ -864,6 +874,9 @@ ol.steps b{color:var(--text)}
 
   /* ---------------- contact page ---------------- */
   var KINDS = [['url','Link'],['email','Email'],['phone','Phone']];
+  /* same names the contact page knows about */
+  var GLYPH_NAMES = ['phone','mail','chat','code','profile','globe','doc','calendar',
+                     'camera','play','briefcase','link','at','star','game'];
   var AVATARS = ['memoji-1.png','memoji-2.png','memoji-3.png','memoji-4.png',
                  'memoji.png','memoji-hello.png','memoji-work.png','memoji-path.png',
                  'memoji-why.png','memoji-think.png','me.jpg'];
@@ -921,8 +934,23 @@ ol.steps b{color:var(--text)}
     }
     s.social.forEach(function(L, i){
       var row = el('div','linkrow');
+      var isCustom = L.icon && !/^glyph:/.test(L.icon);
+      var iconPrev = isCustom
+        ? '<img src="'+esc(assetURL(L.icon))+'" alt="">'
+        : '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></svg>';
+
       row.innerHTML =
-          '<input type="text" data-l="label" value="'+esc(L.label||'')+'" placeholder="Label" aria-label="Label">'
+          '<span class="icocell">'
+        +   '<button class="icobtn" data-a="upicon" title="Upload a logo for this link">'+iconPrev+'</button>'
+        +   '<select data-l="icon" title="Built-in glyph">'
+        +     '<option value="">auto</option>'
+        +     GLYPH_NAMES.map(function(g){
+                return '<option value="glyph:'+g+'"'+(L.icon==='glyph:'+g?' selected':'')+'>'+g+'</option>';
+              }).join('')
+        +     (isCustom ? '<option value="'+esc(L.icon)+'" selected>custom</option>' : '')
+        +   '</select>'
+        + '</span>'
+        + '<input type="text" data-l="label" value="'+esc(L.label||'')+'" placeholder="Label" aria-label="Label">'
         + '<select data-l="kind">' + KINDS.map(function(k){
             return '<option value="'+k[0]+'"'+(L.kind===k[0]?' selected':'')+'>'+k[1]+'</option>';
           }).join('') + '</select>'
@@ -942,6 +970,12 @@ ol.steps b{color:var(--text)}
           if(key === 'label' && !L.id) L.id = slug(inp.value);
           save();
         });
+      });
+
+      row.querySelector('[data-a="upicon"]').addEventListener('click', function(){
+        pickFile('icon-' + (L.id || slug(L.label) || 'link'), function(rel){
+          L.icon = rel; save(); renderContact();
+        }, 'image/*');
       });
 
       row.querySelector('[data-a="del"]').addEventListener('click', function(){
