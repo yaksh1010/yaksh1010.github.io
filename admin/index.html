@@ -103,6 +103,10 @@ textarea{resize:vertical;min-height:76px;line-height:1.5}
 .devfields{flex:1;min-width:0}
 .portprev{width:150px;height:188px;border-radius:14px;overflow:hidden;background:#e8e8ed;border:1px solid var(--hair);flex:none;display:grid;place-items:center;color:var(--t3);font-size:11px;text-align:center;padding:10px}
 .portprev img{width:100%;height:100%;object-fit:cover;object-position:50% 34%;display:block}
+.linkrow{display:grid;grid-template-columns:120px 92px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--hair)}
+.linkrow:last-child{border-bottom:0}
+.linkrow .top{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t2);white-space:nowrap}
+@media(max-width:760px){.linkrow{grid-template-columns:1fr 1fr;}.linkrow .acts{grid-column:1/-1;display:flex;justify-content:flex-end;gap:6px}}
 .catrow .id{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;color:var(--t3);background:rgba(0,0,0,.05);padding:2px 7px;border-radius:5px}
 
 /* export bar */
@@ -133,6 +137,7 @@ ol.steps b{color:var(--text)}
       <button class="tab" role="tab" aria-selected="true"  data-panel="home">Home</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="projects">Projects</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="experience">Experience</button>
+      <button class="tab" role="tab" aria-selected="false" data-panel="contact">Contact page</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="analytics">Analytics</button>
       <button class="tab" role="tab" aria-selected="false" data-panel="publish">Publish</button>
     </div>
@@ -210,6 +215,51 @@ ol.steps b{color:var(--text)}
       <h3 style="font-size:16px;margin-bottom:4px">Certifications</h3>
       <p class="hint" style="margin-bottom:10px">One per line. Each renders as an AWS chip under the timeline.</p>
       <textarea id="certs" rows="5"></textarea>
+    </div>
+  </section>
+
+  <!-- ============================ CONTACT PAGE ============================ -->
+  <section class="panel" id="p-contact" hidden>
+    <div class="head">
+      <div>
+        <h2>Contact page</h2>
+        <p>The NFC landing page at <span class="mono">/contact-me/</span>. A link with an empty URL simply does not appear.</p>
+      </div>
+      <a class="btn btn-out" href="../contact-me/" target="_blank" rel="noopener">Preview page</a>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:14px">Header</h3>
+      <div class="grid">
+        <div><label>Name</label><input type="text" id="cName"></div>
+        <div><label>Title under your name</label><input type="text" id="cTitle"></div>
+      </div>
+      <div class="grid one"><div><label>Short blurb</label><input type="text" id="cBlurb"></div></div>
+      <div class="grid">
+        <div><label>Location</label><input type="text" id="cLoc"></div>
+        <div><label>Avatar image</label><select id="cAvatar"></select></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:16px;margin-bottom:4px">Save to contacts</h3>
+      <p class="hint" style="margin-bottom:14px">Builds the .vcf card. These two fields are what actually land in someone's phone.</p>
+      <div class="grid">
+        <div><label>Phone</label><input type="text" id="cPhone" placeholder="+13026123867"></div>
+        <div><label>Email</label><input type="text" id="cEmail"></div>
+      </div>
+      <label class="chk" style="margin-top:12px" id="cVcardWrap">
+        <input type="checkbox" id="cVcard"> Show the "Save to contacts" button
+      </label>
+    </div>
+
+    <div class="card">
+      <div class="card-head" style="margin-bottom:10px">
+        <h3 style="font-size:16px">Links</h3>
+        <button class="btn btn-out btn-sm" id="addLink">+ Add link</button>
+      </div>
+      <p class="hint" style="margin:-4px 0 12px">Tick <b>Top</b> to put a link in the main group; the rest fall under a "More" divider. Drag order is set with the arrows.</p>
+      <div id="linkList"></div>
     </div>
   </section>
 
@@ -812,6 +862,113 @@ ol.steps b{color:var(--text)}
     }
   }
 
+  /* ---------------- contact page ---------------- */
+  var KINDS = [['url','Link'],['email','Email'],['phone','Phone']];
+  var AVATARS = ['memoji-1.png','memoji-2.png','memoji-3.png','memoji-4.png',
+                 'memoji.png','memoji-hello.png','memoji-work.png','memoji-path.png',
+                 'memoji-why.png','memoji-think.png','me.jpg'];
+
+  function contact(){
+    var s = site();
+    s.contact = s.contact || {};
+    var c = s.contact;
+    if(!('name'  in c)) c.name  = 'Yakshraj Dalwadi';
+    if(!('vcard' in c)) c.vcard = true;
+    s.social = s.social || [];
+    return c;
+  }
+
+  function renderContact(){
+    var c = contact(), s = site();
+
+    var bind = function(id, key){
+      var el2 = document.getElementById(id);
+      if(!el2) return;
+      el2.value = c[key] || '';
+      el2.oninput = function(){ c[key] = this.value; save(); };
+    };
+    bind('cName','name'); bind('cTitle','title'); bind('cBlurb','blurb');
+    bind('cLoc','location'); bind('cPhone','phone'); bind('cEmail','email');
+
+    var av = document.getElementById('cAvatar');
+    if(av && !av.dataset.built){
+      av.dataset.built = '1';
+      AVATARS.forEach(function(f){
+        var o = el('option', null, f); o.value = f; av.appendChild(o);
+      });
+      av.addEventListener('change', function(){ c.avatar = this.value; save(); });
+    }
+    if(av) av.value = c.avatar || 'memoji-1.png';
+
+    var vc = document.getElementById('cVcard');
+    if(vc){
+      vc.checked = c.vcard !== false;
+      document.getElementById('cVcardWrap').classList.toggle('on', vc.checked);
+      vc.onchange = function(){
+        c.vcard = this.checked;
+        document.getElementById('cVcardWrap').classList.toggle('on', this.checked);
+        save();
+      };
+    }
+
+    /* --- the link list --- */
+    var host = document.getElementById('linkList');
+    if(!host) return;
+    host.innerHTML = '';
+    if(!s.social.length){
+      host.appendChild(el('div','empty','No links yet.'));
+      return;
+    }
+    s.social.forEach(function(L, i){
+      var row = el('div','linkrow');
+      row.innerHTML =
+          '<input type="text" data-l="label" value="'+esc(L.label||'')+'" placeholder="Label" aria-label="Label">'
+        + '<select data-l="kind">' + KINDS.map(function(k){
+            return '<option value="'+k[0]+'"'+(L.kind===k[0]?' selected':'')+'>'+k[1]+'</option>';
+          }).join('') + '</select>'
+        + '<input type="text" data-l="value" value="'+esc(L.value||'')+'" placeholder="https://... or leave empty to hide" aria-label="URL">'
+        + '<span class="acts" style="display:flex;gap:6px;align-items:center">'
+        +   '<label class="top"><input type="checkbox" data-l="primary"'+(L.primary?' checked':'')+'> Top</label>'
+        +   '<button class="btn btn-ghost btn-sm" data-a="up" '+(i===0?'disabled':'')+'>&uarr;</button>'
+        +   '<button class="btn btn-ghost btn-sm" data-a="down" '+(i===s.social.length-1?'disabled':'')+'>&darr;</button>'
+        +   '<button class="btn btn-danger btn-sm" data-a="del">&times;</button>'
+        + '</span>';
+
+      row.querySelectorAll('[data-l]').forEach(function(inp){
+        var key = inp.dataset.l;
+        var ev  = (inp.type === 'checkbox' || inp.tagName === 'SELECT') ? 'change' : 'input';
+        inp.addEventListener(ev, function(){
+          L[key] = (inp.type === 'checkbox') ? inp.checked : inp.value;
+          if(key === 'label' && !L.id) L.id = slug(inp.value);
+          save();
+        });
+      });
+
+      row.querySelector('[data-a="del"]').addEventListener('click', function(){
+        if(!confirm('Remove "'+(L.label||'this link')+'"?')) return;
+        s.social.splice(i,1); save(); renderContact();
+      });
+      row.querySelector('[data-a="up"]').addEventListener('click', function(){
+        if(i===0) return;
+        s.social.splice(i-1,0,s.social.splice(i,1)[0]); save(); renderContact();
+      });
+      row.querySelector('[data-a="down"]').addEventListener('click', function(){
+        if(i===s.social.length-1) return;
+        s.social.splice(i+1,0,s.social.splice(i,1)[0]); save(); renderContact();
+      });
+
+      host.appendChild(row);
+    });
+  }
+
+  document.getElementById('addLink').addEventListener('click', function(){
+    var label = prompt('Link name (e.g. "Medium", "Dribbble")');
+    if(!label) return;
+    label = label.trim(); if(!label) return;
+    site().social.push({id:slug(label), label:label, kind:'url', value:'', primary:false});
+    save(); renderContact();
+  });
+
   function renderCategories(){
     var host = document.getElementById('catList');
     host.innerHTML = '';
@@ -1106,7 +1263,9 @@ ol.steps b{color:var(--text)}
     data.certifications = data.certifications||[];
     data.analytics = data.analytics||{goatcounterCode:''};
     site();
+    contact();
     renderSite();
+    renderContact();
     renderCategories();
     renderProjects();
     renderRoles();

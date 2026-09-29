@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Yakshraj Dalwadi — Contact</title>
+<meta name="description" content="Contact Yakshraj Dalwadi — LinkedIn, GitHub, email, phone and more." />
+<meta property="og:title" content="Yakshraj Dalwadi — Contact" />
+<meta property="og:type" content="profile" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="icon" href="../favicon.ico" sizes="any" />
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png" />
+<link rel="apple-touch-icon" href="../favicon-180.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff; --bg-alt:#f5f5f7; --card:#ffffff;
+  --text:#1d1d1f; --text-2:#6e6e73; --text-3:#86868b;
+  --hair:rgba(0,0,0,.10);
+  --blue:#0071e3; --blue-hover:#0077ed; --blue-link:#0066cc; --green:#30d158;
+  --r-md:18px; --r-lg:28px; --pill:980px;
+  --ease:cubic-bezier(.28,.11,.32,1);
+  --font:"SF Pro Display","SF Pro Text",-apple-system,BlinkMacSystemFont,"Inter","Helvetica Neue",Helvetica,Arial,sans-serif;
+  --script:"Dancing Script","Snell Roundhand","Apple Chancery",cursive;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg-alt);color:var(--text);
+  font-family:var(--font);font-size:17px;line-height:1.47;letter-spacing:-.022em;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  min-height:100vh;display:flex;flex-direction:column;
+}
+img{max-width:100%;display:block}
+a{text-decoration:none;color:inherit}
+::selection{background:rgba(0,113,227,.18)}
+@media(prefers-color-scheme:dark){html{color-scheme:light}}
+
+.wrap{
+  width:100%;max-width:460px;margin:0 auto;
+  padding:clamp(28px,7vw,52px) 22px calc(28px + env(safe-area-inset-bottom));
+  flex:1;display:flex;flex-direction:column;
+}
+
+/* ---------------- header card ---------------- */
+.card{
+  background:var(--card);border-radius:var(--r-lg);
+  padding:clamp(26px,6vw,34px) clamp(20px,5vw,28px) clamp(22px,5vw,28px);
+  box-shadow:0 1px 2px rgba(0,0,0,.04),0 10px 30px -18px rgba(0,0,0,.22);
+  text-align:center;margin-bottom:18px;
+}
+.avatar{
+  width:112px;height:112px;border-radius:50%;margin:0 auto 16px;
+  box-shadow:0 8px 22px -10px rgba(0,0,0,.34);
+  animation:bob 5.4s ease-in-out infinite;
+}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.hi{
+  font-family:var(--script);font-weight:600;
+  font-size:clamp(34px,10vw,44px);line-height:1;color:var(--text);
+  display:block;margin-bottom:6px;
+  clip-path:inset(0 100% -25% 0);
+  animation:write 1.1s var(--ease) .15s forwards;
+}
+@keyframes write{to{clip-path:inset(0 -2% -25% 0)}}
+h1{
+  font-size:clamp(25px,6vw,30px);font-weight:600;letter-spacing:-.028em;
+  margin:0 0 5px;line-height:1.12;
+}
+.role{font-size:16px;color:var(--text-2);letter-spacing:-.016em;margin:0 0 10px}
+.blurb{font-size:14.5px;color:var(--text-2);line-height:1.5;margin:0 auto;max-width:34ch}
+.where{
+  display:inline-flex;align-items:center;gap:7px;margin-top:14px;
+  font-size:13px;color:var(--text-3);
+}
+.dot{position:relative;width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+.dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--green);animation:pulse 2.1s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.65}70%{transform:scale(3);opacity:0}100%{opacity:0}}
+
+/* ---------------- buttons ---------------- */
+.stack{display:flex;flex-direction:column;gap:10px}
+.btn{
+  display:flex;align-items:center;gap:14px;
+  width:100%;min-height:56px;padding:14px 18px;
+  border-radius:16px;border:1px solid var(--hair);
+  background:var(--card);color:var(--text);
+  font-size:17px;font-weight:500;letter-spacing:-.02em;
+  cursor:pointer;text-align:left;
+  transition:transform .22s var(--ease),box-shadow .22s var(--ease),
+             background .22s var(--ease),border-color .22s var(--ease);
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:hover{transform:translateY(-2px);box-shadow:0 10px 22px -12px rgba(0,0,0,.30);border-color:rgba(0,0,0,.16)}
+.btn:active{transform:scale(.985)}
+.btn .ico{
+  width:34px;height:34px;border-radius:10px;flex:none;
+  display:grid;place-items:center;color:#fff;
+  font-size:15px;font-weight:700;letter-spacing:-.02em;
+}
+.btn .lbl{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btn .arw{
+  width:7px;height:7px;flex:none;opacity:.32;
+  border-top:1.8px solid currentColor;border-right:1.8px solid currentColor;
+  transform:rotate(45deg);transition:transform .25s var(--ease),opacity .25s var(--ease);
+}
+.btn:hover .arw{opacity:.6;transform:rotate(45deg) translate(2px,-2px)}
+
+/* the save-contact button leads */
+.btn--save{
+  background:var(--blue);color:#fff;border-color:var(--blue);
+  min-height:60px;font-size:17px;font-weight:500;margin-bottom:4px;
+}
+.btn--save:hover{background:var(--blue-hover);border-color:var(--blue-hover);box-shadow:0 12px 24px -12px rgba(0,113,227,.8)}
+.btn--save .ico{background:rgba(255,255,255,.2)}
+.btn--save .arw{opacity:.7}
+
+.sep{
+  display:flex;align-items:center;gap:12px;
+  margin:20px 2px 14px;font-size:12px;color:var(--text-3);letter-spacing:.02em;
+}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--hair)}
+
+/* brand tints */
+.i-linkedin{background:#0a66c2}
+.i-github{background:#1d1d1f}
+.i-email{background:linear-gradient(160deg,#4ab8ff,#0a72e8)}
+.i-phone{background:linear-gradient(180deg,#5ff06b,#12c223)}
+.i-whatsapp{background:#25d366}
+.i-portfolio{background:linear-gradient(160deg,#8e9aae,#2b3242)}
+.i-resume{background:linear-gradient(160deg,#ff9a6b,#e0446f)}
+.i-handshake{background:#f1592a}
+.i-calendly{background:#006bff}
+.i-instagram{background:linear-gradient(135deg,#feda75,#d62976 55%,#4f5bd5)}
+.i-x{background:#1d1d1f}
+.i-youtube{background:#ff0033}
+.i-discord{background:#5865f2}
+.i-default{background:linear-gradient(160deg,#a1a1a6,#6e6e73)}
+
+.foot{
+  text-align:center;margin-top:26px;padding-top:18px;
+  border-top:1px solid var(--hair);
+  font-size:12px;color:var(--text-3);line-height:1.6;
+}
+.foot a{color:var(--blue-link)}
+
+.toast{
+  position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);
+  background:rgba(29,29,31,.94);color:#fff;font-size:14px;
+  padding:11px 20px;border-radius:var(--pill);
+  opacity:0;pointer-events:none;transition:opacity .3s var(--ease),transform .3s var(--ease);
+  backdrop-filter:blur(10px);z-index:50;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* staggered entrance */
+.rv{opacity:0;transform:translateY(14px);animation:rise .6s var(--ease) forwards}
+@keyframes rise{to{opacity:1;transform:none}}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  .rv{opacity:1;transform:none}
+  .hi{clip-path:none}
+}
+</style>
+</head>
+<body>
+
+<main class="wrap">
+  <section class="card rv" id="card"><!-- rendered from data.js --></section>
+  <div class="stack" id="primary"></div>
+  <div id="more"></div>
+
+  <p class="foot rv" style="animation-delay:.5s">
+    Tapped an NFC tag? Everything above is live.<br>
+    <a href="../">See the full portfolio &rsaquo;</a>
+  </p>
+</main>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="../data.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  var DATA = window.PORTFOLIO_DATA || {};
+  var SITE = DATA.site || {};
+  var C    = SITE.contact || {};
+  var LINKS = (SITE.social || []).filter(function(s){ return s && s.value; });
+
+  function esc(s){
+    return String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  /* two initials, or the first letter - used inside the coloured tile */
+  function glyph(label){
+    var w = String(label||'').trim().split(/\s+/);
+    return (w[0]||'?').charAt(0).toUpperCase();
+  }
+  function href(s){
+    if(s.kind === 'email') return 'mailto:' + s.value;
+    if(s.kind === 'phone') return 'tel:' + s.value.replace(/[^\d+]/g,'');
+    /* this page lives one level down, so a site-relative path like
+       "images/resume.pdf" has to climb back out or it 404s */
+    if(!/^(https?:|mailto:|tel:|\/|\.\.\/)/i.test(s.value)) return '../' + s.value;
+    return s.value;
+  }
+  function external(s){
+    return s.kind === 'url' && /^https?:/i.test(s.value);
+  }
+
+  /* ---------------- header ---------------- */
+  (function(){
+    var host = document.getElementById('card');
+    var avatar = C.avatar || 'memoji-1.png';
+    if(!/^(https?:|\.\.\/)/.test(avatar)) avatar = '../' + avatar;
+
+    host.innerHTML =
+        '<img class="avatar" src="'+esc(avatar)+'" alt="'+esc(C.name||'')+'" width="112" height="112" onerror="this.style.display=\'none\'">'
+      + '<span class="hi">Hello.</span>'
+      + '<h1>'+esc(C.name || 'Yakshraj Dalwadi')+'</h1>'
+      + (C.title ? '<p class="role">'+esc(C.title)+'</p>' : '')
+      + (C.blurb ? '<p class="blurb">'+esc(C.blurb)+'</p>' : '')
+      + (C.location ? '<span class="where"><span class="dot" aria-hidden="true"></span>'+esc(C.location)+'</span>' : '');
+  })();
+
+  /* ---------------- buttons ---------------- */
+  function row(s, i, delay){
+    var out = '<a class="btn rv" style="animation-delay:'+delay+'s" href="'+esc(href(s))+'"'
+      + (external(s) ? ' target="_blank" rel="noopener"' : '')
+      + '>'
+      + '<span class="ico i-'+esc(s.id)+' i-default-fallback">'+esc(glyph(s.label))+'</span>'
+      + '<span class="lbl">'+esc(s.label)+'</span>'
+      + '<span class="arw" aria-hidden="true"></span>'
+      + '</a>';
+    return out;
+  }
+
+  (function(){
+    var prim = LINKS.filter(function(s){ return s.primary; });
+    var rest = LINKS.filter(function(s){ return !s.primary; });
+    var d = .12;
+
+    /* save-to-contacts sits above everything */
+    var head = '';
+    if(C.vcard !== false && (C.phone || C.email)){
+      head = '<button class="btn btn--save rv" id="saveVcf" style="animation-delay:.08s" type="button">'
+           + '<span class="ico">&#43;</span>'
+           + '<span class="lbl">Save to contacts</span>'
+           + '<span class="arw" aria-hidden="true"></span>'
+           + '</button>';
+    }
+
+    document.getElementById('primary').innerHTML =
+      head + prim.map(function(s,i){ return row(s, i, d + i*.06); }).join('');
+
+    if(rest.length){
+      document.getElementById('more').innerHTML =
+          '<div class="sep rv" style="animation-delay:'+(d + prim.length*.06)+'s">More</div>'
+        + '<div class="stack">'
+        + rest.map(function(s,i){ return row(s, i, d + (prim.length+i)*.06 + .05); }).join('')
+        + '</div>';
+    }
+  })();
+
+  /* ---------------- vCard ---------------- */
+  function toast(msg){
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function(){ t.classList.remove('show'); }, 2600);
+  }
+
+  var save = document.getElementById('saveVcf');
+  if(save){
+    save.addEventListener('click', function(){
+      var name  = (C.name || 'Yakshraj Dalwadi').trim();
+      var parts = name.split(/\s+/);
+      var last  = parts.length > 1 ? parts.pop() : '';
+      var first = parts.join(' ');
+
+      var lines = [
+        'BEGIN:VCARD',
+        'VERSION:3.0',
+        'N:' + last + ';' + first + ';;;',
+        'FN:' + name
+      ];
+      if(C.title)    lines.push('TITLE:' + C.title);
+      if(C.phone)    lines.push('TEL;TYPE=CELL:' + C.phone);
+      if(C.email)    lines.push('EMAIL;TYPE=INTERNET:' + C.email);
+      if(C.location) lines.push('ADR;TYPE=HOME:;;;' + C.location + ';;;');
+
+      LINKS.forEach(function(s){
+        if(s.kind === 'url' && /^https?:/i.test(s.value)){
+          lines.push('URL;TYPE=' + s.label.replace(/[^A-Za-z]/g,'') + ':' + s.value);
+        }
+      });
+      if(C.blurb) lines.push('NOTE:' + C.blurb.replace(/\n/g,' '));
+      lines.push('REV:' + new Date().toISOString());
+      lines.push('END:VCARD');
+
+      /* CRLF is what the vCard spec wants - iOS is fussy about it */
+      var blob = new Blob([lines.join('\r\n')], {type:'text/vcard;charset=utf-8'});
+      var url  = URL.createObjectURL(blob);
+      var a    = document.createElement('a');
+      a.href = url;
+      a.download = name.replace(/\s+/g,'-') + '.vcf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      toast('Contact card downloaded');
+    });
+  }
+})();
+</script>
+</body>
+</html>
